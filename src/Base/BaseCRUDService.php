@@ -521,9 +521,8 @@ class BaseCRUDService implements ICRUDService
                                                 $has[0],
                                                 function (Builder $q) use ($query_params, $has) {
                                                     $q->where(
-                                                          $has[1],
-                                                          'LIKE',
-                                                          '%'.$query_params['search'].'%'
+                                                        $has[1],'LIKE',
+                                                        '%'.$query_params['search'].'%'
                                                       );
                                                 }
                                             );
