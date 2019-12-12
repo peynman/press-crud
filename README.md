@@ -6,6 +6,6 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/peynman/larapress-crud.svg?style=flat-square)](https://packagist.org/packages/peynman/larapress-crud)
 [![Total Downloads](https://img.shields.io/packagist/dt/peynman/larapress-crud.svg?style=flat-square)](https://packagist.org/packages/peynman/larapress-crud)
 [![License](https://img.shields.io/packagist/l/peynman/larapress-crud.svg?style=flat-square)](https://packagist.org/packages/peynman/larapress-crud)
-[![StyleCI](https://styleci.io/repos/225846364/shield)](https://styleci.io/repos/225846364)
+[![StyleCI](https://styleci.io/repos/227614981/shield)](https://styleci.io/repos/227614981)
 
 ## Start
