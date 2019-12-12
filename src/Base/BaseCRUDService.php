@@ -1,9 +1,9 @@
 <?php
 
-
 namespace Larapress\CRUD\Base;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,15 +13,12 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
 use Larapress\CRUD\Events as CRUDEvent;
 
 /**
- * Class BaseCRUDService
- *
- * @package Larapress\CRUD\Base
+ * Class BaseCRUDService.
  */
 class BaseCRUDService implements ICRUDService
 {
@@ -91,7 +88,7 @@ class BaseCRUDService implements ICRUDService
         }
 
         $query = $this->getQueryFromRequest($query_params);
-        $models = $query->paginate(isset($query_params['limit']) ? $query_params['limit']:10);
+        $models = $query->paginate(isset($query_params['limit']) ? $query_params['limit'] : 10);
         event(new CRUDEvent\CRUDQueried($models->items(), Carbon::now()));
 
         return self::formatPaginatedResponse($query_params, $models);
@@ -105,21 +102,22 @@ class BaseCRUDService implements ICRUDService
     public function filter(Request $request)
     {
         /**
-    * @var Builder $query
-*/
-        $userId = auth()->guest() ? null: auth()->user()->id;
+         * @var Builder
+         */
+        $userId = auth()->guest() ? null : auth()->user()->id;
         $filterKey = self::getFilterKey($request->getSession()->getId(), class_basename($this->crudProvider));
         if ($request->get('remove-filter') == true) {
             $this->crudFilterStorage->putFilters($filterKey, null, $userId);
+
             return [];
         }
 
         $recordFilters = [];
         $availableOptions = $this->crudProvider->getFilterFields();
         foreach ($availableOptions as $field => $options) {
-            if (!is_null($request->get($field))) {
+            if (! is_null($request->get($field))) {
                 $value = $request->get($field);
-                if (!is_null($value)) {
+                if (! is_null($value)) {
                     $recordFilters[$field] = $value;
                 }
             }
@@ -193,7 +191,7 @@ class BaseCRUDService implements ICRUDService
         foreach ($json_data as $prefix => $items) {
             $json_values[$prefix] = [];
             foreach ($items as $item) {
-                if (!empty($data[$prefix.'_'.$item])) {
+                if (! empty($data[$prefix.'_'.$item])) {
                     $json_values[$prefix][$item] = $data[$prefix.'_'.$item];
                 }
             }
@@ -210,7 +208,7 @@ class BaseCRUDService implements ICRUDService
         $translations_object = [];
         foreach ($translation_fields as $field) {
             $translations_object[$field] = isset($input_data[$field.'_translations']) ?
-                json_decode($input_data[$field.'_translations']):null;
+                json_decode($input_data[$field.'_translations']) : null;
         }
         $input_data['translations'] = $translations_object;
 
@@ -218,7 +216,7 @@ class BaseCRUDService implements ICRUDService
         foreach ($json_data as $prefix => $items) {
             $json_values[$prefix] = [];
             foreach ($items as $item) {
-                if (!empty($data[$prefix.'_'.$item])) {
+                if (! empty($data[$prefix.'_'.$item])) {
                     $json_values[$prefix][$item] = $data[$prefix.'_'.$item];
                 }
             }
@@ -265,16 +263,16 @@ class BaseCRUDService implements ICRUDService
     public function show(Request $request, $id)
     {
         /**
-    * @var Builder $query
-*/
+         * @var Builder
+         */
         $query = call_user_func([$this->crudProvider->getModelClass(), 'query']);
         $with = $this->crudProvider->getEagerRelations();
-        if (!is_null($with)) {
+        if (! is_null($with)) {
             $query->with($with);
         }
         $model = $query->find($id);
 
-        if (!$this->crudProvider->onBeforeAccess($model)) {
+        if (! $this->crudProvider->onBeforeAccess($model)) {
             throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
         }
 
@@ -282,7 +280,7 @@ class BaseCRUDService implements ICRUDService
         foreach ($json_data as $prefix => $items) {
             if (isset($model->$prefix)) {
                 foreach ($items as $item) {
-                    if (!empty($model->$prefix[$item])) {
+                    if (! empty($model->$prefix[$item])) {
                         $model[$prefix.'_'.$item] = $model->$prefix[$item];
                     }
                 }
@@ -340,7 +338,7 @@ class BaseCRUDService implements ICRUDService
         $translations_object = [];
         foreach ($translation_fields as $field) {
             $translations_object[$field] = isset($input_data[$field.'_translations']) ?
-                json_decode($input_data[$field.'_translations']):null;
+                json_decode($input_data[$field.'_translations']) : null;
         }
         $input_data['translations'] = $translations_object;
         $data = $this->crudProvider->onBeforeUpdate($input_data);
@@ -349,7 +347,7 @@ class BaseCRUDService implements ICRUDService
         foreach ($json_data as $prefix => $items) {
             $json_values[$prefix] = [];
             foreach ($items as $item) {
-                if (!empty($data[$prefix.'_'.$item])) {
+                if (! empty($data[$prefix.'_'.$item])) {
                     $json_values[$prefix][$item] = $data[$prefix.'_'.$item];
                 }
             }
@@ -374,7 +372,7 @@ class BaseCRUDService implements ICRUDService
 
         DB::transaction(
             function () use ($request, $data, $object, $input_data) {
-                if (!$this->crudProvider->onBeforeAccess($object)) {
+                if (! $this->crudProvider->onBeforeAccess($object)) {
                     throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
                 }
 
@@ -405,8 +403,8 @@ class BaseCRUDService implements ICRUDService
     public function destroy($id)
     {
         /**
-    * @var Builder $query
-*/
+         * @var Builder
+         */
         $query = call_user_func([$this->crudProvider->getModelClass(), 'query']);
         $cascades = $this->crudProvider->getDeleteCascades();
 
@@ -419,7 +417,7 @@ class BaseCRUDService implements ICRUDService
 
         DB::transaction(
             function () use ($object, $cascades) {
-                if (!$this->crudProvider->onBeforeAccess($object)) {
+                if (! $this->crudProvider->onBeforeAccess($object)) {
                     throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
                 }
 
@@ -450,14 +448,15 @@ class BaseCRUDService implements ICRUDService
      */
     public function export(Request $request)
     {
-        $userId = auth()->guest() ? null: auth()->user()->id;
+        $userId = auth()->guest() ? null : auth()->user()->id;
         $filterKey = self::getFilterKey($request->getSession()->getId(), class_basename($this->crudProvider));
         $filters = $this->crudFilterStorage->getFilters($filterKey, null, $userId);
         $params = [];
-        if (!is_null($filters)) {
+        if (! is_null($filters)) {
             $params = ['filters' => $filters];
         }
         $query = $this->getQueryFromRequest($params);
+
         return $this->crudExporter->getResponseForQueryExport($query, $this->crudProvider);
     }
 
@@ -470,7 +469,7 @@ class BaseCRUDService implements ICRUDService
     protected function getQueryFromRequest($query_params)
     {
         /*** @var Builder $query */
-        $query =  $this->crudProvider->onBeforeQuery(call_user_func([$this->crudProvider->getModelClass(), 'query']));
+        $query = $this->crudProvider->onBeforeQuery(call_user_func([$this->crudProvider->getModelClass(), 'query']));
 
         if (isset($query_params['with'])) {
             foreach ($query_params['with'] as $relation => $relation_columns) {
@@ -486,7 +485,7 @@ class BaseCRUDService implements ICRUDService
             foreach ($query_params['sort'] as $sort) {
                 if (isset($sort['column']) && isset($sort['direction'])) {
                     if (in_array($sort['column'], $this->crudProvider->getValidSortColumns())) {
-                        $order = $sort['direction'] === 'asc' ? 'ASC':'DESC';
+                        $order = $sort['direction'] === 'asc' ? 'ASC' : 'DESC';
                         $query->orderBy($sort['column'], $order);
                     } else {
                         throw new AppException(AppException::ERR_INVALID_QUERY);
@@ -510,7 +509,7 @@ class BaseCRUDService implements ICRUDService
                     $sColumns = $this->crudProvider->getSearchableColumns();
                     if (count($sColumns) > 0) {
                         foreach ($sColumns as $column) {
-                             $parts = explode(':', $column);
+                            $parts = explode(':', $column);
                             if (count($parts) == 1) {
                                 $query->orWhere($column, 'LIKE', '%'.$query_params['search'].'%');
                             } else {
@@ -521,7 +520,7 @@ class BaseCRUDService implements ICRUDService
                                             $query->orWhereHas(
                                                 $has[0],
                                                 function (Builder $q) use ($query_params, $has) {
-                                                      $q->where(
+                                                    $q->where(
                                                           $has[1],
                                                           'LIKE',
                                                           '%'.$query_params['search'].'%'
@@ -555,7 +554,7 @@ class BaseCRUDService implements ICRUDService
             $filters = $query_params['filters'];
             $availableFilters = $this->crudProvider->getFilterFields();
             foreach ($availableFilters as $field => $options) {
-                if (isset($filters[$field]) && !is_null($filters[$field])) {
+                if (isset($filters[$field]) && ! is_null($filters[$field])) {
                     if (is_callable($options)) {
                         $options($query, $filters[$field]);
                         continue;
@@ -571,13 +570,13 @@ class BaseCRUDService implements ICRUDService
                             break;
                         case 'has':
                               $values = $filters[$field];
-                            if (!is_array($values)) {
+                            if (! is_array($values)) {
                                 $values = [$values];
                             }
                             $query->whereHas(
                                 $parts[1],
                                 function (Builder $q) use ($values, $parts) {
-                                    $q->whereIn(isset($parts[2])? $parts[2]:'id', $values);
+                                    $q->whereIn(isset($parts[2]) ? $parts[2] : 'id', $values);
                                 }
                             );
                             break;
@@ -622,7 +621,7 @@ class BaseCRUDService implements ICRUDService
             'to' => $paginate->lastItem(),
             'current_page' => $paginate->currentPage(),
             'per_page' => $paginate->perPage(),
-            'ref_id' => isset($params['ref_id']) ? $params['ref_id']:null,
+            'ref_id' => isset($params['ref_id']) ? $params['ref_id'] : null,
             ]
         );
     }

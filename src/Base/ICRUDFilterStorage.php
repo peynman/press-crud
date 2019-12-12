@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Larapress\CRUD\Base;
 
 interface ICRUDFilterStorage

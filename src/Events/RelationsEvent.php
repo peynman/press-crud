@@ -3,20 +3,15 @@
 namespace Larapress\CRUD\Events;
 
 use Carbon\Carbon;
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
 use Larapress\CRUD\Base\ICRUDProvider;
 
 /**
- * Class RelationsEvent
- *
- * @package Larapress\CRUD\Events
+ * Class RelationsEvent.
  */
 class RelationsEvent
 {
@@ -43,7 +38,6 @@ class RelationsEvent
      */
     public function __construct(ICRUDProvider $provider, Model $model, Carbon $timestamp)
     {
-
         $this->provider = $provider;
         $this->model = $model;
         $this->timestamp = $timestamp;

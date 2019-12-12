@@ -1,15 +1,12 @@
 <?php
 
-
 namespace Larapress\CRUD\Base;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 
 /**
- * Interface ICRUDProvider
- *
- * @package Larapress\CRUD\Base
+ * Interface ICRUDProvider.
  */
 interface ICRUDProvider
 {
@@ -117,7 +114,7 @@ interface ICRUDProvider
     /**
      * @param $object
      *
-     * @return boolean
+     * @return bool
      */
     public function onBeforeAccess($object);
 
@@ -160,7 +157,7 @@ interface ICRUDProvider
     /**
      * @param $object
      *
-     * @return boolean
+     * @return bool
      */
     public function onBeforeDestroy($object);
 
@@ -191,7 +188,7 @@ interface ICRUDProvider
     public function getObjectFromID($id);
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isExportable();
 
