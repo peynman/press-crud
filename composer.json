@@ -1,0 +1,35 @@
+{
+  "name": "peynman/larapress-crud",
+  "description": "This is the description of the package.",
+  "type": "library",
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "authors": [
+    {
+      "name": "Peyman Abdi",
+      "email": "peyman.abdi.work@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Larapress\\CRUD\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Larapress\\CRUD\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Larapress\\CRUD\\Providers\\PackageServiceProvider"
+      ]
+    }
+  },
+  "require": {
+    "peynman/larapress-core": "master"
+  },
+  "require-dev": {
+  }
+}
