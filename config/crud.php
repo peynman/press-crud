@@ -3,5 +3,5 @@
 return [
     'events' => [
         'channel' => 'larapress-crud',
-    ]
+    ],
 ];

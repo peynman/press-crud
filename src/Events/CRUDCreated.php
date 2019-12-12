@@ -3,28 +3,26 @@
 namespace Larapress\CRUD\Events;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
 
 /**
- * Class CreatedEvent
- *
- * @package Larapress\CRUD\Events
+ * Class CreatedEvent.
  */
 class CRUDCreated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * @var Model $model
+     * @var Model
      */
     protected $model;
 
     /**
-     * @var Carbon $model
+     * @var Carbon
      */
     private $timestamp;
 
@@ -57,7 +55,6 @@ class CRUDCreated
     {
         return $this->timestamp;
     }
-
 
     public function getModel(): Model
     {

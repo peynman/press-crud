@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Larapress\CRUD\Base;
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +12,7 @@ trait BaseCRUDProvider
      */
     public function getTranslations()
     {
-        return isset($this->translations) ? $this->translations:[];
+        return isset($this->translations) ? $this->translations : [];
     }
 
     /**
@@ -21,7 +20,7 @@ trait BaseCRUDProvider
      */
     public function getJSONFills()
     {
-        return isset($this->jsons) ? $this->jsons:[];
+        return isset($this->jsons) ? $this->jsons : [];
     }
 
     /**
@@ -45,7 +44,7 @@ trait BaseCRUDProvider
      */
     public function getValidRelations()
     {
-        return isset($this->validRelations) ? $this->validRelations: [];
+        return isset($this->validRelations) ? $this->validRelations : [];
     }
 
     /**
@@ -53,7 +52,7 @@ trait BaseCRUDProvider
      */
     public function getValidSortColumns()
     {
-        return isset($this->validSortColumns) ? $this->validSortColumns:[];
+        return isset($this->validSortColumns) ? $this->validSortColumns : [];
     }
 
     /**
@@ -61,7 +60,7 @@ trait BaseCRUDProvider
      */
     public function getSearchableColumns()
     {
-        return isset($this->searchColumns) ? $this->searchColumns:[];
+        return isset($this->searchColumns) ? $this->searchColumns : [];
     }
 
     /**
@@ -69,7 +68,7 @@ trait BaseCRUDProvider
      */
     public function getAutoSyncRelations()
     {
-        return isset($this->autoSyncRelations) ? $this->autoSyncRelations:[];
+        return isset($this->autoSyncRelations) ? $this->autoSyncRelations : [];
     }
 
     /**
@@ -77,7 +76,7 @@ trait BaseCRUDProvider
      */
     public function getAutoCountRelations()
     {
-        return isset($this->autoCountRelations) ? $this->autoCountRelations: [];
+        return isset($this->autoCountRelations) ? $this->autoCountRelations : [];
     }
 
     /**
@@ -85,7 +84,7 @@ trait BaseCRUDProvider
      */
     public function getFilterFields()
     {
-        return isset($this->filterFields) ? $this->filterFields:[];
+        return isset($this->filterFields) ? $this->filterFields : [];
     }
 
     /**
@@ -93,7 +92,7 @@ trait BaseCRUDProvider
      */
     public function getFilterDefaultValues()
     {
-        return isset($this->filterDefaults) ? $this->filterDefaults:[];
+        return isset($this->filterDefaults) ? $this->filterDefaults : [];
     }
 
     /**
@@ -109,7 +108,7 @@ trait BaseCRUDProvider
      */
     public function getEagerRelations()
     {
-        return isset($this->defaultShowRelations) ? $this->defaultShowRelations:[];
+        return isset($this->defaultShowRelations) ? $this->defaultShowRelations : [];
     }
 
     /**
@@ -117,7 +116,7 @@ trait BaseCRUDProvider
      */
     public function getExcludeUpdate()
     {
-        return isset($this->excludeFromUpdate) ? $this->excludeFromUpdate:[];
+        return isset($this->excludeFromUpdate) ? $this->excludeFromUpdate : [];
     }
 
     /**
@@ -125,7 +124,7 @@ trait BaseCRUDProvider
      */
     public function getCreateRules()
     {
-        return isset($this->createValidations) ? $this->createValidations:[];
+        return isset($this->createValidations) ? $this->createValidations : [];
     }
 
     /**
@@ -133,7 +132,7 @@ trait BaseCRUDProvider
      */
     public function getUpdateRules()
     {
-        return isset($this->updateValidations) ? $this->updateValidations:[];
+        return isset($this->updateValidations) ? $this->updateValidations : [];
     }
 
     /**
