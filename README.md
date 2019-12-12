@@ -1,5 +1,5 @@
 
-# Larapress Core
+# Larapress CRUD
 
 [![CircleCI](https://circleci.com/gh/peynman/larapress-crud.svg?style=svg)](https://circleci.com/gh/peynman/larapress-crud)
 [![Coverage Status](https://img.shields.io/codecov/c/github/peynman/larapress-crud.svg?branch=master&style=flat-square)](https://codecov.io/github/peynman/larapress-crud?branch=master)
