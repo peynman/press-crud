@@ -203,7 +203,7 @@ abstract class BaseCRUDController extends Controller
         foreach ($verbs as $verb => $data) {
             Route::match($data['methods'], $data['url'], [
                     'uses' => $data['uses'],
-                    'provider' => $provider
+                    'provider' => $provider,
                 ])
                 ->name($name.'.'.$verb);
         }
