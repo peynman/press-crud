@@ -13,19 +13,17 @@ interface ICRUDUser
 {
     /**
      * @param string|string[]|int|int[] $roles
-     * @param bool                      $all
      *
      * @return bool
      */
-    public function hasRole($roles, $all = false);
+    public function hasRole($roles);
 
     /**
      * @param string|string[]|int|int[]     $permissions
-     * @param bool $all
      *
      * @return bool
      */
-    public function hasPermission($permissions, $all = false);
+    public function hasPermission($permissions);
 
     /**
      * @return void

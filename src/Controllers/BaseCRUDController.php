@@ -7,10 +7,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
 use Larapress\CRUD\Base\ICRUDExporter;
 use Larapress\CRUD\Base\ICRUDFilterStorage;
+use Larapress\CRUD\Base\ICRUDProvider;
 use Larapress\CRUD\Base\ICRUDService;
 
 /**
@@ -27,13 +29,19 @@ abstract class BaseCRUDController extends Controller
      * extend the constructor and call $service->useProvide() to set your crud resource.
      *
      * @param ICRUDService $service
+     * @param \Illuminate\Http\Request $request
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
-    public function __construct(ICRUDService $service)
+    public function __construct(ICRUDService $service, Request $request)
     {
         $this->crudService = $service;
         $this->crudService->useCRUDFilterStorage(app()->make(ICRUDFilterStorage::class));
         $this->crudService->useCRUDExporter(app()->make(ICRUDExporter::class));
+
+        $providerClass = $request->route()->getAction('provider');
+        /** @var ICRUDProvider $provider */
+        $provider = new $providerClass();
+        $this->crudService->useProvider($provider);
     }
 
     /**
@@ -138,18 +146,66 @@ abstract class BaseCRUDController extends Controller
         return $this->crudService->export($request);
     }
 
-    public static function routes($name, $controller, $destroys = true)
+    /**
+     * @param string $name
+     * @param string $controller
+     * @param string $provider
+     */
+    public static function registerCrudRoutes($name, $controller, $provider)
     {
-        if (is_string($controller)) {
+        if (! Str::startsWith($controller, '\\')) {
             $controller = '\\'.$controller;
         }
 
-        Route::post($name.'/query', $controller.'@query')->name($name.'.query');
-        Route::post($name.'/export', $controller.'@export')->name($name.'.query.export');
-        $api = Route::apiResource($name, $controller);
-        if (! $destroys) {
-            $api->except('destroy');
+        $verbs = [
+            'index' => [
+                'methods' => ['GET'],
+                'url' => $name,
+                'uses' => $controller.'@index',
+            ],
+            'store' => [
+                'methods' => ['POST'],
+                'url' => $name,
+                'uses' => $controller.'@store',
+            ],
+            'update' => [
+                'methods' => ['PUT'],
+                'url' => $name.'/{id}',
+                'uses' => $controller.'@update',
+            ],
+            'destroy' => [
+                'methods' => ['DELETE'],
+                'url' => $name.'/{id}',
+                'uses' => $controller.'@destroy',
+            ],
+            'query' => [
+                'methods' => ['POST'],
+                'url' => $name.'/query',
+                'uses' => $controller.'@query',
+            ],
+            'export' => [
+                'methods' => ['POST'],
+                'url' => $name.'/export',
+                'uses' => $controller.'@export',
+            ],
+        ];
+
+        self::registerCRUDVerbs($name, $verbs, $provider);
+    }
+
+    /**
+     * @param string $name
+     * @param array $verbs
+     * @param string $provider
+     */
+    public static function registerCRUDVerbs($name, $verbs, $provider)
+    {
+        foreach ($verbs as $verb => $data) {
+            Route::match($data['methods'], $data['url'], [
+                    'uses' => $data['uses'],
+                    'provider' => $provider
+                ])
+                ->name($name.'.'.$verb);
         }
-        $api->register();
     }
 }
