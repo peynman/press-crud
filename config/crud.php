@@ -7,4 +7,8 @@ return [
     'events' => [
         'channel' => 'larapress-crud',
     ],
+
+    'permissions' => [
+        \Larapress\Profiles\MetaData\RoleMetaData::class,
+    ],
 ];

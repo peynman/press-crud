@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Controllers;
+namespace Larapress\CRUD\CRUDControllers;
 
 use http\Env\Response;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;

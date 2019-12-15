@@ -5,6 +5,7 @@ namespace Larapress\CRUD\Providers;
 use Illuminate\Support\ServiceProvider;
 use Larapress\CRUD\Base\BaseCRUDService;
 use Larapress\CRUD\Base\ICRUDService;
+use Larapress\CRUD\Commands\AccountManager;
 
 class PackageServiceProvider extends ServiceProvider
 {
@@ -25,11 +26,19 @@ class PackageServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->loadMigrationsFrom(__DIR__.'/../../migrations');
+
         $this->publishes(
             [
             __DIR__.'/../../config/crud.php' => config_path('larapress/crud.php'),
             ],
             ['config', 'larapress', 'larapress-crud']
         );
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                AccountManager::class,
+            ]);
+        }
     }
 }
