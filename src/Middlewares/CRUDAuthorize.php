@@ -23,18 +23,18 @@ class CRUDAuthorize
     {
         $name = $request->route()->getName();
         if (is_null($name)) {
-            throw new \Exception("Route with CRUD Authorize has no name!", 500);
+            throw new \Exception('Route with CRUD Authorize has no name!', 500);
         }
 
         $name_parts = explode('.', $name);
         if (count($name_parts) < 2) {
-            throw new \Exception("Route with CRUD Authorize has invalid name!", 500);
+            throw new \Exception('Route with CRUD Authorize has invalid name!', 500);
         }
 
         /** @var ICRUDUser $user */
         $user = Auth::user();
         if (is_null($user)) {
-            throw new \Exception("Route with CRUD Authorize has to authenticate with user credentials first.", 500);
+            throw new \Exception('Route with CRUD Authorize has to authenticate with user credentials first.', 500);
         }
 
         $required_permissions = [];
@@ -72,8 +72,8 @@ class CRUDAuthorize
                 $required_permissions[] = $name_parts[0].'.'.$name_parts[1];
         }
 
-        if (!is_null($required_permissions)) {
-            if (!$user->hasPermission($required_permissions)) {
+        if (! is_null($required_permissions)) {
+            if (! $user->hasPermission($required_permissions)) {
                 throw new AppException(AppException::ERR_ACCESS_DENIED);
             }
         }

@@ -19,7 +19,7 @@ interface IPermissionsMetaData
     public function getPermissionVerbs();
 
     /**
-     * Permission group name
+     * Permission group name.
      *
      * @return string
      */
@@ -29,18 +29,22 @@ interface IPermissionsMetaData
      * @return string
      */
     public function getViewPermission();
+
     /**
      * @return string
      */
     public function getEditPermission();
+
     /**
      * @return string
      */
     public function getDeletePermission();
+
     /**
      * @return string
      */
     public function getCreatePermission();
+
     /**
      * @return string
      */

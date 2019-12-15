@@ -8,7 +8,6 @@ namespace Larapress\CRUD;
  * @property int $id
  * @property string $name
  * @property string $password
- *
  */
 interface ICRUDUser
 {

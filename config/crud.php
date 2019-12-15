@@ -2,7 +2,7 @@
 
 return [
     'user' => [
-        'class' => App\Models\User::class
+        'class' => App\Models\User::class,
     ],
     'events' => [
         'channel' => 'larapress-crud',

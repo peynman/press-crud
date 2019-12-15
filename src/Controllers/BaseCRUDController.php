@@ -3,22 +3,20 @@
 namespace Larapress\CRUD\Controllers;
 
 use http\Env\Response;
-use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
 use Larapress\CRUD\Base\ICRUDExporter;
 use Larapress\CRUD\Base\ICRUDFilterStorage;
 use Larapress\CRUD\Base\ICRUDService;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
- * Used by any resource that needs CRUD end points
+ * Used by any resource that needs CRUD end points.
  *
  * Class BaseCRUDController
- * @package App\Http\Controllers\CRUD
  */
 abstract class BaseCRUDController extends Controller
 {
@@ -26,7 +24,7 @@ abstract class BaseCRUDController extends Controller
 
     /**
      * BaseCRUDController constructor.
-     * extend the constructor and call $service->useProvide() to set your crud resource
+     * extend the constructor and call $service->useProvide() to set your crud resource.
      *
      * @param ICRUDService $service
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
@@ -149,7 +147,7 @@ abstract class BaseCRUDController extends Controller
         Route::post($name.'/query', $controller.'@query')->name($name.'.query');
         Route::post($name.'/export', $controller.'@export')->name($name.'.query.export');
         $api = Route::apiResource($name, $controller);
-        if (!$destroys) {
+        if (! $destroys) {
             $api->except('destroy');
         }
         $api->register();

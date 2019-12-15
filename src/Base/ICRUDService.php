@@ -2,11 +2,11 @@
 
 namespace Larapress\CRUD\Base;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
-use \Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ICRUDService
 {
