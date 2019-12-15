@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
+use \Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ICRUDService
 {
@@ -34,7 +35,7 @@ interface ICRUDService
      *
      * @param Request $request
      *
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return LengthAwarePaginator
      * @throws AppException
      * @throws \Exception
      */
@@ -45,7 +46,7 @@ interface ICRUDService
      *
      * @param Request $request
      *
-     * @throws \Larapress\Core\Exceptions\AppException
+     * @throws AppException
      * @throws \Exception
      */
     public function filter(Request $request);
@@ -64,9 +65,9 @@ interface ICRUDService
      *
      * @param Request $request
      *
-     * @return Response
+     * @return \Illuminate\Database\Eloquent\Model
      * @throws ValidationException
-     * @throws \Larapress\Core\Exceptions\AppException
+     * @throws AppException
      * @throws \Exception
      */
     public function store(Request $request);
@@ -77,7 +78,7 @@ interface ICRUDService
      * @param Request $request
      * @param string  $id
      *
-     * @return Response
+     * @return \Illuminate\Database\Eloquent\Model
      */
     public function show(Request $request, $id);
 
@@ -89,7 +90,7 @@ interface ICRUDService
      *
      * @return Response
      * @throws ValidationException
-     * @throws \Larapress\Core\Exceptions\AppException
+     * @throws AppException
      * @throws \Exception
      */
     public function update(Request $request, $id);
@@ -97,12 +98,12 @@ interface ICRUDService
     /**
      * Remove the specified resource from storage.
      *
+     * @param \Illuminate\Http\Request $request
      * @param int $id
      *
      * @return Response
-     * @throws \Larapress\Core\Exceptions\AppException
      */
-    public function destroy($id);
+    public function destroy(Request $request, $id);
 
     /**
      * @param Request $request

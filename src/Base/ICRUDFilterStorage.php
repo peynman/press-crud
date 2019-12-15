@@ -16,7 +16,21 @@ interface ICRUDFilterStorage
      * @param array  $defaultValue
      * @param string $userId
      *
-     * @return array|null
+     * @return array|null|string
      */
     public function getFilters(string $key, array $defaultValue, string $userId);
+
+    /**
+     * @param string $sessionId
+     * @param string $providerClass
+     * @return string
+     */
+    public function getFilterKey(string $sessionId, string $providerClass);
+
+    /**
+     * @param string $sessionId
+     * @param ICRUDProvider $provider
+     * @return string[]|array|null
+     */
+    public function getFilterValues(string $sessionId, ICRUDProvider $provider);
 }

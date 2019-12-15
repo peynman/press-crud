@@ -105,7 +105,10 @@ class BaseCRUDService implements ICRUDService
          * @var Builder
          */
         $userId = auth()->guest() ? null : auth()->user()->id;
-        $filterKey = self::getFilterKey($request->getSession()->getId(), class_basename($this->crudProvider));
+        $filterKey = $this->crudFilterStorage->getFilterKey(
+            $request->getSession()->getId(),
+            class_basename($this->crudProvider)
+        );
         if ($request->get('remove-filter') == true) {
             $this->crudFilterStorage->putFilters($filterKey, null, $userId);
 
@@ -152,7 +155,7 @@ class BaseCRUDService implements ICRUDService
      *
      * @param \Illuminate\Http\Request $request
      *
-     * @return \Illuminate\Http\Response
+     * @return Model
      * @throws \Larapress\Core\Exceptions\ValidationException
      * @throws AppException
      * @throws \Exception
@@ -395,12 +398,13 @@ class BaseCRUDService implements ICRUDService
     /**
      * Remove the specified resource from storage.
      *
+     * @param \Illuminate\Http\Request $request
      * @param int $id
      *
      * @return \Illuminate\Http\Response
-     * @throws AppException
+     * @throws \Larapress\Core\Exceptions\AppException
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         /**
          * @var Builder
@@ -449,7 +453,10 @@ class BaseCRUDService implements ICRUDService
     public function export(Request $request)
     {
         $userId = auth()->guest() ? null : auth()->user()->id;
-        $filterKey = self::getFilterKey($request->getSession()->getId(), class_basename($this->crudProvider));
+        $filterKey = $this->crudFilterStorage->getFilterKey(
+            $request->getSession()->getId(),
+            class_basename($this->crudProvider)
+        );
         $filters = $this->crudFilterStorage->getFilters($filterKey, null, $userId);
         $params = [];
         if (! is_null($filters)) {
@@ -457,7 +464,7 @@ class BaseCRUDService implements ICRUDService
         }
         $query = $this->getQueryFromRequest($params);
 
-        return $this->crudExporter->getResponseForQueryExport($query, $this->crudProvider);
+        return $this->crudExporter->getResponseForQueryExport($request, $query, $this->crudProvider);
     }
 
     /**
@@ -588,17 +595,6 @@ class BaseCRUDService implements ICRUDService
         }
 
         return $query;
-    }
-
-    /**
-     * @param $sessionId
-     * @param $class
-     *
-     * @return string
-     */
-    public static function getFilterKey($sessionId, $class)
-    {
-        return 'filters.'.$class.'.'.$sessionId;
     }
 
     /**

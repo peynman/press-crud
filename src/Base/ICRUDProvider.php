@@ -3,7 +3,7 @@
 namespace Larapress\CRUD\Base;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Interface ICRUDProvider.
@@ -91,7 +91,7 @@ interface ICRUDProvider
     public function getDeleteCascades();
 
     /**
-     * @param $query
+     * @param Builder $query
      *
      * @return Builder
      */
