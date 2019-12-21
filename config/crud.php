@@ -19,7 +19,7 @@ return [
 
     'JSONCRUDRenderOnJsonContentType' => [
         'auth:api',
-        CRUDAuthorizeRequest::class
+        CRUDAuthorizeRequest::class,
     ],
 
     'routes' => [
@@ -28,5 +28,5 @@ return [
         ],
     ],
 
-    'prefix' => 'api'
+    'prefix' => 'api',
 ];

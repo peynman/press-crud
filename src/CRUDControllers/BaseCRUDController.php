@@ -38,7 +38,7 @@ abstract class BaseCRUDController extends Controller
         $this->crudService->useCRUDFilterStorage(app()->make(ICRUDFilterStorage::class));
         $this->crudService->useCRUDExporter(app()->make(ICRUDExporter::class));
 
-        if (!is_null($request->route())) {
+        if (! is_null($request->route())) {
             $providerClass = $request->route()->getAction('provider');
 
             if (class_exists($providerClass)) {

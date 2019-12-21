@@ -7,8 +7,10 @@ Route::middleware(config('larapress.crud.middleware'))
     ->prefix(config('larapress.crud.prefix'))
     ->group(function () {
         $controllers = config('larapress.crud.controllers');
-        $registerControllers = function($controllers, $registerFunction) {
-            if (is_null($controllers)) { return; }
+        $registerControllers = function ($controllers, $registerFunction) {
+            if (is_null($controllers)) {
+                return;
+            }
 
             foreach ($controllers as $controller) {
                 if (Str::startsWith($controller, 'include::')) {

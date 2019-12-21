@@ -71,10 +71,10 @@ class AccountManager extends ActionCommandBase
                         $all_verbs = $instance->getPermissionVerbs();
                         foreach ($all_verbs as $verb_name) {
                             $this->info($instance->getPermissionObjectName().' -> '.$verb_name);
-                            /** @var Permission $model */
+                            /* @var Permission $model */
                             Permission::firstOrCreate([
                                 'name' => $instance->getPermissionObjectName(),
-                                'verb' => $verb_name
+                                'verb' => $verb_name,
                             ]);
                         }
                     }
