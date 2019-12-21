@@ -38,10 +38,15 @@ abstract class BaseCRUDController extends Controller
         $this->crudService->useCRUDFilterStorage(app()->make(ICRUDFilterStorage::class));
         $this->crudService->useCRUDExporter(app()->make(ICRUDExporter::class));
 
-        $providerClass = $request->route()->getAction('provider');
-        /** @var ICRUDProvider $provider */
-        $provider = new $providerClass();
-        $this->crudService->useProvider($provider);
+        if (!is_null($request->route())) {
+            $providerClass = $request->route()->getAction('provider');
+
+            if (class_exists($providerClass)) {
+                /** @var ICRUDProvider $provider */
+                $provider = new $providerClass();
+                $this->crudService->useProvider($provider);
+            }
+        }
     }
 
     /**
@@ -190,7 +195,7 @@ abstract class BaseCRUDController extends Controller
             ],
         ];
 
-        self::registerCRUDVerbs($name, $verbs, $provider);
+        self::registerVerbs($name, $verbs, $provider);
     }
 
     /**
@@ -198,7 +203,7 @@ abstract class BaseCRUDController extends Controller
      * @param array $verbs
      * @param string $provider
      */
-    public static function registerCRUDVerbs($name, $verbs, $provider)
+    public static function registerVerbs($name, $verbs, $provider)
     {
         foreach ($verbs as $verb => $data) {
             Route::match($data['methods'], $data['url'], [

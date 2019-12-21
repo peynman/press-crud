@@ -65,7 +65,7 @@ interface ICRUDService
      *
      * @param Request $request
      *
-     * @return \Illuminate\Database\Eloquent\Model
+     * @return \Illuminate\Database\Eloquent\Model|Response
      * @throws ValidationException
      * @throws AppException
      * @throws \Exception
@@ -78,7 +78,7 @@ interface ICRUDService
      * @param Request $request
      * @param string  $id
      *
-     * @return \Illuminate\Database\Eloquent\Model
+     * @return \Illuminate\Database\Eloquent\Model|Response
      */
     public function show(Request $request, $id);
 
@@ -88,7 +88,7 @@ interface ICRUDService
      * @param Request $request
      * @param int     $id
      *
-     * @return Response
+     * @return Response|\Illuminate\Database\Eloquent\Model
      * @throws ValidationException
      * @throws AppException
      * @throws \Exception

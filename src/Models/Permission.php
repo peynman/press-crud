@@ -8,10 +8,8 @@ use Illuminate\Database\Eloquent\Model;
  * Class Permission.
  *
  * @property $id
- * @property $name
- * @property $title
- * @property $group_name
- * @property $group_title
+ * @property string $name
+ * @property string $verb
  * @property Role[] $roles
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
@@ -22,9 +20,7 @@ class Permission extends Model
 
     protected $fillable = [
         'name',
-        'title',
-        'group_name',
-        'group_title',
+        'verb',
     ];
 
     /**

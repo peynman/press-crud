@@ -5,7 +5,7 @@ namespace Larapress\CRUD\CRUD;
 use Larapress\Core\Extend\Helpers;
 use Larapress\CRUD\Base\BaseCRUDProvider;
 use Larapress\CRUD\Base\ICRUDProvider;
-use Larapress\Profiles\Models\Role;
+use Larapress\CRUD\Models\Role;
 
 class RoleCRUDProvider implements ICRUDProvider
 {

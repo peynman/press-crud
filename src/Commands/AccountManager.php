@@ -10,7 +10,7 @@ use Larapress\CRUD\Base\IPermissionsMetaData;
 use Larapress\CRUD\ICRUDUser;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Models\Role;
-use Larapress\CRUDRender\CRUD\ICRUDPermissionView;
+use Larapress\CRUDRender\Base\ICRUDPermissionView;
 
 class AccountManager extends ActionCommandBase
 {
@@ -70,25 +70,12 @@ class AccountManager extends ActionCommandBase
                         $instance = call_user_func([$meta_data_class, 'instance']);
                         $all_verbs = $instance->getPermissionVerbs();
                         foreach ($all_verbs as $verb_name) {
-                            $name = $instance->getPermissionObjectName().'.'.$verb_name;
-                            $title = $instance->getTitleByVerbName($verb_name);
-                            $this->info($name);
+                            $this->info($instance->getPermissionObjectName().' -> '.$verb_name);
                             /** @var Permission $model */
-                            $model = Permission::where('name', $name)->first();
-                            if (is_null($model)) {
-                                Permission::create([
-                                    'name' => $name,
-                                    'title' => $title,
-                                    'group_name' => $instance->getPermissionObjectName(),
-                                    'group_title' => $instance->plural(),
-                                ]);
-                            } else {
-                                $model->update([
-                                    'title' => $title,
-                                    'group_name' => $instance->getPermissionObjectName(),
-                                    'group_title' => $instance->plural(),
-                                ]);
-                            }
+                            Permission::firstOrCreate([
+                                'name' => $instance->getPermissionObjectName(),
+                                'verb' => $verb_name
+                            ]);
                         }
                     }
                 }

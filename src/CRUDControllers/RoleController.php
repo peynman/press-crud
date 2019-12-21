@@ -9,7 +9,7 @@ class RoleController extends BaseCRUDController
     public static function registerRoutes()
     {
         parent::registerCrudRoutes(
-            config('larapress.profiles.routes.roles.name'),
+            config('larapress.crud.routes.roles.name'),
             self::class,
             RoleCRUDProvider::class
         );

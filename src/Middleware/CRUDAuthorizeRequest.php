@@ -8,7 +8,7 @@ use Larapress\Core\Exceptions\AppException;
 use Larapress\CRUD\Base\IPermissionsMetaData;
 use Larapress\CRUD\ICRUDUser;
 
-class CRUDAuthorize
+class CRUDAuthorizeRequest
 {
     /**
      * Handle an incoming request.

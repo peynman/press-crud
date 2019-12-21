@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Larapress\CRUD\Base\BaseCRUDService;
 use Larapress\CRUD\Base\ICRUDService;
 use Larapress\CRUD\Commands\AccountManager;
+use Larapress\CRUD\CRUD\RoleCRUDProvider;
 
 class PackageServiceProvider extends ServiceProvider
 {
@@ -17,6 +18,10 @@ class PackageServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(ICRUDService::class, BaseCRUDService::class);
+
+        $this->app->singleton(RoleCRUDProvider::class, function ($app) {
+            return new RoleCRUDProvider();
+        });
     }
 
     /**
@@ -26,6 +31,7 @@ class PackageServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
         $this->loadMigrationsFrom(__DIR__.'/../../migrations');
 
         $this->publishes(
