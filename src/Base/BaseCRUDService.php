@@ -11,8 +11,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
 use Larapress\CRUD\Events as CRUDEvent;
@@ -89,7 +91,6 @@ class BaseCRUDService implements ICRUDService
 
         $query = $this->getQueryFromRequest($query_params);
         $models = $query->paginate(isset($query_params['limit']) ? $query_params['limit'] : 10);
-        event(new CRUDEvent\CRUDQueried($models->items(), Carbon::now()));
 
         return self::formatPaginatedResponse($query_params, $models);
     }
@@ -102,21 +103,42 @@ class BaseCRUDService implements ICRUDService
     public function filter(Request $request)
     {
         /**
-         * @var Builder
+         * @var int
          */
         $userId = auth()->guest() ? null : auth()->user()->id;
+        $reqSessionId = $request->get('session');
+        $sessionId = null;
+        if (!is_null($reqSessionId) && is_string($reqSessionId)) {
+            $sessionId = $reqSessionId;
+        } else {
+            $session = $request->getSession();
+            if (is_null($session)) {
+                $sessionId = 'global-session';
+            } else {
+                $sessionId = $session->getId();
+            }
+        }
         $filterKey = $this->crudFilterStorage->getFilterKey(
-            $request->getSession()->getId(),
-            class_basename($this->crudProvider)
+            $sessionId,
+            get_class($this->crudProvider)
         );
-        if ($request->get('remove-filter') == true) {
+        if ($request->get('reset') === true) {
             $this->crudFilterStorage->putFilters($filterKey, null, $userId);
 
             return [];
         }
 
+        if ($request->get('view') === true) {
+            return response()->json($this->crudFilterStorage->getFilters($filterKey, [], $userId));
+        }
+
         $recordFilters = [];
-        $availableOptions = $this->crudProvider->getFilterFields();
+        $availableOptions = array_merge($this->crudProvider->getFilterFields(), [
+            'settings' => 'storage',
+            'options' => 'storage',
+            'theme' => 'storage',
+            'view' => 'storage',
+        ]);
         foreach ($availableOptions as $field => $options) {
             if (! is_null($request->get($field))) {
                 $value = $request->get($field);
@@ -131,26 +153,6 @@ class BaseCRUDService implements ICRUDService
     }
 
     /**
-     * Display a listing of the resource.
-     *
-     * @param Request $request
-     *
-     * @return LengthAwarePaginator
-     */
-    public function index(Request $request)
-    {
-        $query = call_user_func([$this->crudProvider->getModelClass(), 'query']);
-        $query = $this->crudProvider->onBeforeQuery($query);
-        $models = $query->paginate(100);
-        event(new CRUDEvent\CRUDQueried($models->items(), Carbon::now()));
-
-        return self::formatPaginatedResponse(
-            $request->all(),
-            $models
-        );
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param \Illuminate\Http\Request $request
@@ -162,21 +164,18 @@ class BaseCRUDService implements ICRUDService
      */
     public function store(Request $request)
     {
-        $createRules = $this->crudProvider->getCreateRules();
+        $createRules = $this->crudProvider->getCreateRules($request);
         $translations = $this->crudProvider->getTranslations();
-        $json_data = $this->crudProvider->getJSONFills();
 
-        $translation_rules = [];
         if ($this->crudProvider->shouldFilterRequestParamsByRules()) {
-            $keys = array_keys($createRules);
-            foreach ($json_data as $prefix => $items) {
-                foreach ($items as $item) {
-                    $keys[] = $prefix.'_'.$item;
+            $askedKeys = array_keys($createRules);
+            $reqKeys = $request->keys();
+            $keys = [];
+            foreach ($askedKeys as $key) {
+                $askKey = explode('.',$key)[0];
+                if (in_array($askKey, $reqKeys)) {
+                    $keys[] = $askKey;
                 }
-            }
-            foreach ($translations as $key => $rule) {
-                $translation_rules[$key.'_translations'] = $rule;
-                $keys[] = $key.'_translations';
             }
             $input_data = $request->all($keys);
         } else {
@@ -190,66 +189,31 @@ class BaseCRUDService implements ICRUDService
 
         $data = $this->crudProvider->onBeforeCreate($input_data);
 
-        $json_values = [];
-        foreach ($json_data as $prefix => $items) {
-            $json_values[$prefix] = [];
-            foreach ($items as $item) {
-                if (! empty($data[$prefix.'_'.$item])) {
-                    $json_values[$prefix][$item] = $data[$prefix.'_'.$item];
-                }
-            }
-        }
-        foreach ($json_values as $param => $obj) {
-            if (isset($data[$param])) {
-                $data[$param] = array_merge($data[$param], $obj);
-            } else {
-                $data[$param] = $obj;
-            }
-        }
-
-        $translation_fields = array_keys($translations);
         $translations_object = [];
-        foreach ($translation_fields as $field) {
-            $translations_object[$field] = isset($input_data[$field.'_translations']) ?
-                json_decode($input_data[$field.'_translations']) : null;
+        foreach ($translations as $field) {
+            $translations_object[$field] = $data[$field]['translations'];
+            unset($data[$field]);
         }
-        $input_data['translations'] = $translations_object;
-
-        $json_values = [];
-        foreach ($json_data as $prefix => $items) {
-            $json_values[$prefix] = [];
-            foreach ($items as $item) {
-                if (! empty($data[$prefix.'_'.$item])) {
-                    $json_values[$prefix][$item] = $data[$prefix.'_'.$item];
-                }
-            }
-        }
-        foreach ($json_values as $param => $obj) {
-            if (isset($data[$param])) {
-                $data[$param] = array_merge($data[$param], $obj);
-            } else {
-                $data[$param] = $obj;
-            }
-        }
+        $data['translations'] = $translations_object;
 
         try {
             DB::beginTransaction();
             if (is_null($this->crudStorage)) {
                 $object = call_user_func([$this->crudProvider->getModelClass(), 'create'], $data);
-                self::syncRelations($this->crudProvider->getAutoSyncRelations(), $object, $data);
+                self::syncRelations('store', $this->crudProvider->getAutoSyncRelations(), $object, $data);
             } else {
                 $object = $this->crudStorage->store($request, $data);
             }
 
             $this->crudProvider->onAfterCreate($object, $input_data);
+
             DB::commit();
         } catch (\Exception $exception) {
             DB::rollBack();
             throw $exception;
         }
 
-        event(new CRUDEvent\CRUDCreated($object, Carbon::now()));
-        event(new CRUDEvent\RelationsEvent($this->crudProvider, $object, Carbon::now()));
+        event(new CRUDEvent\CRUDCreated($object, class_basename($this->crudProvider), Carbon::now()));
 
         return $object;
     }
@@ -291,7 +255,6 @@ class BaseCRUDService implements ICRUDService
         }
 
         $model = $this->crudProvider->onShowModel($model);
-        event(new CRUDEvent\CRUDQueried([$model], Carbon::now()));
 
         return $model;
     }
@@ -309,59 +272,44 @@ class BaseCRUDService implements ICRUDService
      */
     public function update(Request $request, $id)
     {
-        $updateRules = $this->crudProvider->getUpdateRules();
+        $updateRules = $this->crudProvider->getUpdateRules($request);
         $translations = $this->crudProvider->getTranslations();
-        $json_data = $this->crudProvider->getJSONFills();
 
-        $translation_rules = [];
-
+        $input_data = null;
         if ($this->crudProvider->shouldFilterRequestParamsByRules()) {
-            $keys = array_keys($updateRules);
-            foreach ($json_data as $prefix => $items) {
-                foreach ($items as $item) {
-                    $keys[] = $prefix.'_'.$item;
+            $askedKeys = array_keys($updateRules);
+            $reqKeys = $request->keys();
+            $keys = [];
+            foreach ($askedKeys as $key) {
+                $askKey = explode('.',$key)[0];
+                if (in_array($askKey, $reqKeys)) {
+                    $keys[] = $askKey;
                 }
-            }
-            foreach ($translations as $key => $rule) {
-                $translation_rules[$key.'_translations'] = $rule;
-                $keys[] = $key.'_translations';
             }
             $input_data = $request->all($keys);
         } else {
             $input_data = $request->all();
         }
 
-        $validate = Validator::make($input_data, array_merge($translation_rules, $updateRules));
+        $validate = Validator::make($input_data, $updateRules);
         if ($validate->fails()) {
             throw new ValidationException($validate);
         }
 
-        $input_data = array_diff($input_data, $this->crudProvider->getExcludeUpdate());
-        $translation_fields = array_keys($translations);
-        $translations_object = [];
-        foreach ($translation_fields as $field) {
-            $translations_object[$field] = isset($input_data[$field.'_translations']) ?
-                json_decode($input_data[$field.'_translations']) : null;
+        $exclude = $this->crudProvider->getExcludeUpdate();
+        foreach ($exclude as $excluded) {
+            if ($input_data[$excluded]) {
+                unset($input_data[$excluded]);
+            }
         }
-        $input_data['translations'] = $translations_object;
         $data = $this->crudProvider->onBeforeUpdate($input_data);
 
-        $json_values = [];
-        foreach ($json_data as $prefix => $items) {
-            $json_values[$prefix] = [];
-            foreach ($items as $item) {
-                if (! empty($data[$prefix.'_'.$item])) {
-                    $json_values[$prefix][$item] = $data[$prefix.'_'.$item];
-                }
-            }
+        $translations_object = [];
+        foreach ($translations as $field) {
+            $translations_object[$field] = $data[$field]['translations'];
+            unset($data[$field]);
         }
-        foreach ($json_values as $param => $obj) {
-            if (isset($data[$param])) {
-                $data[$param] = array_merge($data[$param], $obj);
-            } else {
-                $data[$param] = $obj;
-            }
-        }
+        $data['translations'] = $translations_object;
 
         $object = $this->crudProvider->getObjectFromID($id);
         if (is_null($object)) {
@@ -381,7 +329,7 @@ class BaseCRUDService implements ICRUDService
 
                 if (is_null($this->crudStorage)) {
                     $object->update($data);
-                    self::syncRelations($this->crudProvider->getAutoSyncRelations(), $object, $data);
+                    self::syncRelations('update', $this->crudProvider->getAutoSyncRelations(), $object, $data);
 
                     $this->crudProvider->onAfterUpdate($object, $input_data);
                 } else {
@@ -390,7 +338,7 @@ class BaseCRUDService implements ICRUDService
             }
         );
 
-        event(new CRUDEvent\CRUDUpdated($object, Carbon::now()));
+        event(new CRUDEvent\CRUDUpdated($object, class_basename($this->crudProvider), Carbon::now()));
 
         return $object;
     }
@@ -439,7 +387,7 @@ class BaseCRUDService implements ICRUDService
             }
         );
 
-        event(new CRUDEvent\CRUDDeleted($object, Carbon::now()));
+        event(new CRUDEvent\CRUDDeleted($object, class_basename($this->crudProvider), Carbon::now()));
 
         return response()->json($object);
     }
@@ -479,12 +427,24 @@ class BaseCRUDService implements ICRUDService
         $query = $this->crudProvider->onBeforeQuery(call_user_func([$this->crudProvider->getModelClass(), 'query']));
 
         if (isset($query_params['with'])) {
-            foreach ($query_params['with'] as $relation => $relation_columns) {
-                if (in_array($relation, $this->crudProvider->getValidRelations())) {
-                    $query->with($relation);
-                } else {
-                    throw new AppException(AppException::ERR_INVALID_QUERY);
+            foreach ($query_params['with'] as $relation) {
+                if (isset($relation['name']) && isset($relation['columns'])) {
+                    $name = $relation['name'];
+                    $relation_columns = $relation['columns'];
+                    if (in_array($name, $this->crudProvider->getValidRelations())) {
+                        if (is_string($relation_columns)) {
+                            $relation_columns = explode(',', $relation_columns);
+                        }
+                        $query->with([$name => function($q) use($relation_columns) {
+                            if (count($relation_columns) > 0) {
+                                $q->select($relation_columns);
+                            }
+                        }]);
+                    } else {
+                        throw new AppException(AppException::ERR_INVALID_QUERY);
+                    }
                 }
+
             }
         }
 
@@ -601,12 +561,11 @@ class BaseCRUDService implements ICRUDService
      * @param $params
      * @param LengthAwarePaginator $paginate
      *
-     * @return LengthAwarePaginator
+     * @return array
      */
     public static function formatPaginatedResponse($params, $paginate)
     {
-        return (LengthAwarePaginator::class)(
-            [
+        return [
             'data' => $paginate->items(),
             'total' => $paginate->total(),
             'from' => $paginate->firstItem(),
@@ -614,47 +573,56 @@ class BaseCRUDService implements ICRUDService
             'current_page' => $paginate->currentPage(),
             'per_page' => $paginate->perPage(),
             'ref_id' => isset($params['ref_id']) ? $params['ref_id'] : null,
-            ]
-        );
+        ];
+    }
+
+    protected static function syncRelation($relation, $callback, $object, $data) {
+        $saveAfter = false;
+        /** @var HasMany|BelongsToMany|BelongsTo $builder */
+        $builder = call_user_func([$object, $relation]);
+        $builderClass = class_basename($builder);
+
+        switch ($builderClass) {
+            case class_basename(HasMany::class):
+                $builder->saveMany($callback($object, $data));
+                break;
+            case class_basename(BelongsTo::class):
+                $builder->associate($callback($object, $data));
+                $saveAfter = true;
+                break;
+            case class_basename(BelongsToMany::class):
+                $rel = $callback($object, $data);
+                if (is_array($rel)) {
+                    $builder->attach($rel[0], isset($rel[1]) ? $rel[1]:[]);
+                } else {
+                    $builder->attach($rel);
+                }
+                break;
+        }
+
+        return $saveAfter;
     }
 
     /**
-     * @param $autoSyncRelations
-     * @param $object
-     * @param $data
+     * @param $method
+     * @param array $autoSyncRelations
+     * @param \Illuminate\Database\Eloquent\Model $object
+     * @param array $data
      *
-     * @throws \Exception
      */
-    protected static function syncRelations($autoSyncRelations, $object, $data)
+    protected static function syncRelations($method, $autoSyncRelations, $object, $data)
     {
-        foreach ($autoSyncRelations as $relation) {
-            if (isset($data[$relation])) {
-                $builder = call_user_func([$object, $relation]);
-                $classname = class_basename($builder);
-                switch ($classname) {
-                    case 'BelongsToMany':
-                        /*** @var BelongsToMany $builder */
-                        $builder->sync($data[$relation]);
-                        break;
-                    case 'BelongsTo':
-                        if (is_object($data[$relation])) {
-                            $data[$relation] = $data[$relation][0];
-                        }
-                        /*** @var BelongsTo $builder */
-                        $builder->associate($data[$relation])->save();
-                        break;
-                    case 'HasMany':
-                        /*** @var HasMany $builder */
-                        $builder->delete();
-                        $builder->saveMany($data[$relation]);
-                        break;
-                    default:
-                        throw new \Exception(
-                            'No relation found for classname: '.
-                            $classname.' in '.class_basename(self::class)
-                        );
-                }
+        $saveAfter = false;
+        foreach ($autoSyncRelations as $relation => $callback) {
+            if (is_callable($callback)) {
+                $saveAfter = $saveAfter || self::syncRelation($relation, $callback, $object, $data);
+            } else if (isset($callback[$method]) && is_callable($callback[$method])) {
+                $saveAfter = $saveAfter || self::syncRelation($relation, $callback[$method], $object, $data);
             }
+        }
+
+        if ($saveAfter) {
+            $object->save();
         }
     }
 }

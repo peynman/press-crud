@@ -4,6 +4,7 @@ namespace Larapress\CRUD\Base;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 /**
  * Interface ICRUDProvider.
@@ -66,14 +67,18 @@ interface ICRUDProvider
     public function getExcludeUpdate();
 
     /**
-     * @return array
+     * Undocumented function
+     *
+     * @param Request $request
+     * @return void
      */
-    public function getCreateRules();
+    public function getCreateRules(Request $request);
 
     /**
+     * @param Request $request
      * @return array
      */
-    public function getUpdateRules();
+    public function getUpdateRules(Request $request);
 
     /**
      * @return array

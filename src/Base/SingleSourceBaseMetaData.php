@@ -2,7 +2,7 @@
 
 namespace Larapress\CRUD\Base;
 
-abstract class SingleSourceBaseMetaData
+abstract class SingleSourceBaseMetadata
 {
     private static $instances = [];
 

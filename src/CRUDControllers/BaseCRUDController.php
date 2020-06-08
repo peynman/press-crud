@@ -29,14 +29,16 @@ abstract class BaseCRUDController extends Controller
      * extend the constructor and call $service->useProvide() to set your crud resource.
      *
      * @param ICRUDService $service
+     * @param \Larapress\CRUD\Base\ICRUDFilterStorage $filterStorage
+     * @param \Larapress\CRUD\Base\ICRUDExporter $crudExporter
      * @param \Illuminate\Http\Request $request
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
-    public function __construct(ICRUDService $service, Request $request)
+    public function __construct(ICRUDService $service, ICRUDFilterStorage $filterStorage, ICRUDExporter $crudExporter, Request $request)
     {
         $this->crudService = $service;
-        $this->crudService->useCRUDFilterStorage(app()->make(ICRUDFilterStorage::class));
-        $this->crudService->useCRUDExporter(app()->make(ICRUDExporter::class));
+        $this->crudService->useCRUDFilterStorage($filterStorage);
+        $this->crudService->useCRUDExporter($crudExporter);
 
         if (! is_null($request->route())) {
             $providerClass = $request->route()->getAction('provider');
@@ -75,18 +77,6 @@ abstract class BaseCRUDController extends Controller
     public function filter(Request $request)
     {
         return $this->crudService->filter($request);
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @param Request $request
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
-    {
-        return $this->crudService->index($request);
     }
 
     /**
@@ -156,18 +146,13 @@ abstract class BaseCRUDController extends Controller
      * @param string $controller
      * @param string $provider
      */
-    public static function registerCrudRoutes($name, $controller, $provider)
+    public static function registerCrudRoutes($name, $controller, $provider, $additionalVerbs = [])
     {
         if (! Str::startsWith($controller, '\\')) {
             $controller = '\\'.$controller;
         }
 
-        $verbs = [
-            'index' => [
-                'methods' => ['GET'],
-                'url' => $name,
-                'uses' => $controller.'@index',
-            ],
+        $verbs = array_merge([
             'store' => [
                 'methods' => ['POST'],
                 'url' => $name,
@@ -188,12 +173,17 @@ abstract class BaseCRUDController extends Controller
                 'url' => $name.'/query',
                 'uses' => $controller.'@query',
             ],
+            'query.filter' => [
+                'methods' => ['POST'],
+                'url' => $name.'/filter',
+                'uses' => $controller.'@filter',
+            ],
             'export' => [
                 'methods' => ['POST'],
                 'url' => $name.'/export',
                 'uses' => $controller.'@export',
             ],
-        ];
+        ], $additionalVerbs);
 
         self::registerVerbs($name, $verbs, $provider);
     }

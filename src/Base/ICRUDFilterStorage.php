@@ -9,7 +9,7 @@ interface ICRUDFilterStorage
      * @param array|null $value
      * @param string     $userId
      */
-    public function putFilters(string $key, array $value, string $userId);
+    public function putFilters(string $key, $value, string $userId);
 
     /**
      * @param string $key
@@ -18,7 +18,7 @@ interface ICRUDFilterStorage
      *
      * @return array|null|string
      */
-    public function getFilters(string $key, array $defaultValue, string $userId);
+    public function getFilters(string $key, $defaultValue, string $userId);
 
     /**
      * @param string $sessionId

@@ -2,7 +2,6 @@
 
 namespace Larapress\CRUD\CRUD;
 
-use Larapress\Core\Extend\Helpers;
 use Larapress\CRUD\Base\BaseCRUDProvider;
 use Larapress\CRUD\Base\ICRUDProvider;
 use Larapress\CRUD\Models\Role;
@@ -21,38 +20,33 @@ class RoleCRUDProvider implements ICRUDProvider
         'title' => 'required|string',
         'permissions' => 'required|objectIds:permissions,id,id',
     ];
-    public $autoSyncRelations = ['permissions'];
-    public $validSortColumns = ['id', 'name', 'title', 'created_at'];
-    public $validRelations = [];
+    public $autoSyncRelations = [
+        'permissions',
+    ];
+    public $validSortColumns = [
+        'id',
+        'name',
+        'title',
+        'created_at',
+    ];
+    public $validRelations = [
+        'permissions',
+    ];
+    public $defaultShowRelations = [
+        'permissions',
+    ];
     public $validFilters = [];
-    public $defaultShowRelations = ['permissions'];
-    public $excludeFromUpdate = ['name'];
-    public $searchColumns = ['name', 'title'];
-    public $filterDefaults = [];
-    public $filterFields = [];
+    public $excludeFromUpdate = [
+        'name',
+    ];
+    public $searchColumns = [
+        'name',
+        'title',
+    ];
+    public $filterDefaults = [
 
-    public function onBeforeCreate($args)
-    {
-        if (isset($args['permissions'])) {
-            $args['permissions'] = Helpers::getNormalizedObjectIds($args['permissions']);
-        }
+    ];
+    public $filterFields = [
 
-        return $args;
-    }
-
-    public function onBeforeUpdate($args)
-    {
-        return $this->onBeforeCreate($args);
-    }
-
-    /**
-     * @param Role $object
-     * @param array  $input_data
-     *
-     * @return object
-     */
-    public function onAfterUpdate($object, $input_data)
-    {
-        return $object;
-    }
+    ];
 }

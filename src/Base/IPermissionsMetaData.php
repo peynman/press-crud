@@ -2,7 +2,7 @@
 
 namespace Larapress\CRUD\Base;
 
-interface IPermissionsMetaData
+interface IPermissionsMetadata
 {
     const VIEW = 'view';
     const EDIT = 'edit';

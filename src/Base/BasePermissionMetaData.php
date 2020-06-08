@@ -2,7 +2,7 @@
 
 namespace Larapress\CRUD\Base;
 
-trait BasePermissionMetaData
+trait BasePermissionMetadata
 {
     public function getViewPermission()
     {

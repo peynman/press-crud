@@ -57,6 +57,15 @@ trait BaseCRUDUser
         return $this->checkRole($roles);
     }
 
+
+    /**
+     * @return array
+     */
+    public function getPermissions() {
+        $this->checkPermission(''); // make sure cache is up
+        return $this->permissions;
+    }
+
     /**
      * @param string|int|Permission $permission
      *
@@ -72,7 +81,7 @@ trait BaseCRUDUser
                 $roles = $this->roles()->with('permissions')->get();
                 foreach ($roles as $role) {
                     foreach ($role->permissions as $role_permission) {
-                        $perms[] = [$role_permission->id, $role_permission->name];
+                        $perms[] = [$role_permission->id, $role_permission->name.'.'.$role_permission->verb];
                     }
                 }
                 Cache::tags(['permissions'])->put(

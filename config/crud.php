@@ -6,12 +6,8 @@ return [
     'user' => [
         'class' => App\Models\User::class,
     ],
-    'events' => [
-        'channel' => 'larapress-crud',
-    ],
-
     'permissions' => [
-        \Larapress\CRUD\MetaData\RoleMetaData::class,
+        \Larapress\CRUD\Metadata\RoleMetadata::class,
     ],
     'controllers' => [
         \Larapress\CRUD\CRUDControllers\RoleController::class,
@@ -29,4 +25,9 @@ return [
     ],
 
     'prefix' => 'api',
+
+    'languages' => [
+        'en' => \Larapress\CRUD\Translation\Lang\Roman::class,
+        'fa' => \Larapress\CRUD\Translation\Lang\Persian::class,
+    ],
 ];

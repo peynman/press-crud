@@ -4,6 +4,7 @@ namespace Larapress\CRUD\Base;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
 
 trait BaseCRUDProvider
 {
@@ -122,7 +123,7 @@ trait BaseCRUDProvider
     /**
      * @return array
      */
-    public function getCreateRules()
+    public function getCreateRules(Request $request)
     {
         return isset($this->createValidations) ? $this->createValidations : [];
     }
@@ -130,7 +131,7 @@ trait BaseCRUDProvider
     /**
      * @return array
      */
-    public function getUpdateRules()
+    public function getUpdateRules(Request $request)
     {
         return isset($this->updateValidations) ? $this->updateValidations : [];
     }
@@ -298,5 +299,58 @@ trait BaseCRUDProvider
     public function getExportHeaders()
     {
         return [];
+    }
+
+    /**
+     * @param string $relation
+     * @param Model $object
+     * @param array $data
+     * @param string $class
+     */
+    protected function saveHasManyRelation($relation, $object, $data, $class) {
+        $models = [];
+        foreach ($data[$relation] as $datum) {
+            $models[] = new $class($datum);
+        }
+        /** @var \Illuminate\Database\Eloquent\Relations\HasMany $builder */
+        $builder = call_user_func([$object, $relation]);
+        $builder->saveMany($models);
+    }
+
+    /**
+     * @param string $relation
+     * @param Model $object
+     * @param array $data
+     */
+    protected function syncWithoutDetachingBelongsToManyRelation($relation, $object, $data) {
+        if (!empty($data[$relation])) {
+            $ids = [];
+            foreach ($data[$relation] as $datum) {
+                $ids[] = $datum['id'];
+            }
+
+            /** @var \Illuminate\Database\Eloquent\Relations\BelongsToMany $builder */
+            $builder = call_user_func([$object, $relation]);
+            $builder->syncWithoutDetaching($ids);
+        }
+    }
+
+
+    /**
+     * @param string $relation
+     * @param Model $object
+     * @param array $data
+     */
+    protected function syncBelongsToManyRelation($relation, $object, $data) {
+        if (!empty($data[$relation])) {
+            $ids = [];
+            foreach ($data[$relation] as $datum) {
+                $ids[] = $datum['id'];
+            }
+
+            /** @var \Illuminate\Database\Eloquent\Relations\BelongsToMany $builder */
+            $builder = call_user_func([$object, $relation]);
+            $builder->syncWithoutDetaching($ids);
+        }
     }
 }

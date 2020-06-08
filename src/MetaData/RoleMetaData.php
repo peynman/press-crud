@@ -1,15 +1,15 @@
 <?php
 
-namespace Larapress\CRUD\MetaData;
+namespace Larapress\CRUD\Metadata;
 
-use Larapress\CRUD\Base\BasePermissionMetaData;
-use Larapress\CRUD\Base\IPermissionsMetaData;
-use Larapress\CRUD\Base\SingleSourceBaseMetaData;
+use Larapress\CRUD\Base\BasePermissionMetadata;
+use Larapress\CRUD\Base\IPermissionsMetadata;
+use Larapress\CRUD\Base\SingleSourceBaseMetadata;
 
-class RoleMetaData extends SingleSourceBaseMetaData implements
-    IPermissionsMetaData
+class RoleMetadata extends SingleSourceBaseMetadata implements
+    IPermissionsMetadata
 {
-    use BasePermissionMetaData;
+    use BasePermissionMetadata;
 
     public function getPermissionVerbs()
     {

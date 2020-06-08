@@ -52,15 +52,6 @@ interface ICRUDService
     public function filter(Request $request);
 
     /**
-     * get a listing of the resources.
-     *
-     * @param Request $request
-     *
-     * @return Response
-     */
-    public function index(Request $request);
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param Request $request

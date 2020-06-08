@@ -5,8 +5,11 @@ namespace Larapress\CRUD\Providers;
 use Illuminate\Support\ServiceProvider;
 use Larapress\CRUD\Base\BaseCRUDService;
 use Larapress\CRUD\Base\ICRUDService;
-use Larapress\CRUD\Commands\AccountManager;
-use Larapress\CRUD\CRUD\RoleCRUDProvider;
+use Larapress\CRUD\Commands\CRUDPermissionsCommands;
+use Larapress\CRUD\Repository\IRoleRepository;
+use Larapress\CRUD\Repository\RoleRepository;
+use Larapress\CRUD\Validations\DateTimeZonedValidator;
+use Larapress\CRUD\Validations\DBObjectIDsValidator;
 
 class PackageServiceProvider extends ServiceProvider
 {
@@ -18,10 +21,7 @@ class PackageServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(ICRUDService::class, BaseCRUDService::class);
-
-        $this->app->singleton(RoleCRUDProvider::class, function ($app) {
-            return new RoleCRUDProvider();
-        });
+        $this->app->bind(IRoleRepository::class, RoleRepository::class);
     }
 
     /**
@@ -43,8 +43,11 @@ class PackageServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                AccountManager::class,
+                CRUDPermissionsCommands::class,
             ]);
         }
+
+        DBObjectIDsValidator::register();
+        DateTimeZonedValidator::register();
     }
 }

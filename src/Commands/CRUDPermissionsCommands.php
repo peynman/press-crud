@@ -6,21 +6,20 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Larapress\Core\Commands\ActionCommandBase;
-use Larapress\CRUD\Base\IPermissionsMetaData;
+use Larapress\CRUD\Base\IPermissionsMetadata;
 use Larapress\CRUD\ICRUDUser;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Models\Role;
-use Larapress\CRUDRender\Base\ICRUDPermissionView;
 
-class AccountManager extends ActionCommandBase
+class CRUDPermissionsCommands extends ActionCommandBase
 {
-    const SUPER_ROLE_PRIORITY = PHP_INT_MAX;
+    const SUPER_ROLE_PRIORITY = 4294967295;
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'admin:accounts {--action=}';
+    protected $signature = 'larapress:crud {--action=}';
 
     /**
      * The console command description.
@@ -48,7 +47,6 @@ class AccountManager extends ActionCommandBase
         return function () {
             $form = [
                 'name' => null,
-                'number' => null,
                 'password' => null,
             ];
             $form = $this->fillForm($form);
@@ -66,7 +64,7 @@ class AccountManager extends ActionCommandBase
                     if (Str::startsWith($meta_data_class, 'include::')) {
                         $callback(config(Str::substr($meta_data_class, Str::length('include::'))), $callback);
                     } else {
-                        /** @var IPermissionsMetaData|ICRUDPermissionView $instance */
+                        /** @var IPermissionsMetadata|ICRUDPermissionView $instance */
                         $instance = call_user_func([$meta_data_class, 'instance']);
                         $all_verbs = $instance->getPermissionVerbs();
                         foreach ($all_verbs as $verb_name) {
@@ -81,6 +79,7 @@ class AccountManager extends ActionCommandBase
                 }
             };
             $process_class_names($meta_data_classes, $process_class_names);
+            $this->updateSuperRole()();
         };
     }
 
