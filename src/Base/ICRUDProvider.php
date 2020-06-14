@@ -70,7 +70,7 @@ interface ICRUDProvider
      * Undocumented function
      *
      * @param Request $request
-     * @return void
+     * @return array
      */
     public function getCreateRules(Request $request);
 

@@ -301,6 +301,16 @@ trait BaseCRUDProvider
         return [];
     }
 
+    public function getPermissionVerbs()
+    {
+        return isset($this->verbs) ? $this->verbs : [];
+    }
+
+    public function getPermissionObjectName()
+    {
+        return isset($this->name_in_config) ? config($this->name_in_config) : $this->name;
+    }
+
     /**
      * @param string $relation
      * @param Model $object
@@ -350,7 +360,7 @@ trait BaseCRUDProvider
 
             /** @var \Illuminate\Database\Eloquent\Relations\BelongsToMany $builder */
             $builder = call_user_func([$object, $relation]);
-            $builder->syncWithoutDetaching($ids);
+            $builder->sync($ids);
         }
     }
 }

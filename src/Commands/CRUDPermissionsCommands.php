@@ -5,7 +5,7 @@ namespace Larapress\CRUD\Commands;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Larapress\Core\Commands\ActionCommandBase;
+use Larapress\CRUD\Commands\ActionCommandBase;
 use Larapress\CRUD\Base\IPermissionsMetadata;
 use Larapress\CRUD\ICRUDUser;
 use Larapress\CRUD\Models\Permission;
@@ -64,8 +64,8 @@ class CRUDPermissionsCommands extends ActionCommandBase
                     if (Str::startsWith($meta_data_class, 'include::')) {
                         $callback(config(Str::substr($meta_data_class, Str::length('include::'))), $callback);
                     } else {
-                        /** @var IPermissionsMetadata|ICRUDPermissionView $instance */
-                        $instance = call_user_func([$meta_data_class, 'instance']);
+                        /** @var IPermissionsMetadata $instance */
+                        $instance = new $meta_data_class();
                         $all_verbs = $instance->getPermissionVerbs();
                         foreach ($all_verbs as $verb_name) {
                             $this->info($instance->getPermissionObjectName().' -> '.$verb_name);
@@ -131,9 +131,11 @@ class CRUDPermissionsCommands extends ActionCommandBase
                 'password' => Hash::make($form['password']),
             ]);
         } else {
-            $user->update([
-                'password' => Hash::make($form['password']),
-            ]);
+            if ($form['password']) {
+                $user->update([
+                    'password' => Hash::make($form['password']),
+                ]);
+            }
         }
 
         /** @var Role $super_role */

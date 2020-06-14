@@ -8,11 +8,6 @@ use Larapress\Profiles\IProfileUser;
 interface IRoleRepository
 {
     /**
-     * @return \Larapress\CRUD\Models\Role[]
-     */
-    public function getAllRoles();
-
-    /**
      * @param IProfileUser|ICRUDUser $user
      * @return \Larapress\CRUD\Models\Role[]
      */

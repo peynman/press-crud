@@ -3,7 +3,7 @@
 namespace Larapress\CRUD\Translation;
 
 use Illuminate\Translation\FileLoader;
-use Larapress\Core\Extend\Helpers;
+use Larapress\CRUD\Extend\Helpers;
 
 class PackageFileLoader extends FileLoader
 {

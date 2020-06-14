@@ -2,6 +2,9 @@
 
 namespace Larapress\CRUD\Base;
 
+/**
+ * Undocumented interface
+ */
 interface IPermissionsMetadata
 {
     const VIEW = 'view';
@@ -24,29 +27,4 @@ interface IPermissionsMetadata
      * @return string
      */
     public function getPermissionObjectName();
-
-    /**
-     * @return string
-     */
-    public function getViewPermission();
-
-    /**
-     * @return string
-     */
-    public function getEditPermission();
-
-    /**
-     * @return string
-     */
-    public function getDeletePermission();
-
-    /**
-     * @return string
-     */
-    public function getCreatePermission();
-
-    /**
-     * @return string
-     */
-    public function getViewReportsPermission();
 }

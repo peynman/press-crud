@@ -15,8 +15,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Larapress\Core\Exceptions\AppException;
-use Larapress\Core\Exceptions\ValidationException;
+use Larapress\CRUD\Exceptions\AppException;
+use Larapress\CRUD\Exceptions\ValidationException;
 use Larapress\CRUD\Events as CRUDEvent;
 
 /**
@@ -90,7 +90,7 @@ class BaseCRUDService implements ICRUDService
         }
 
         $query = $this->getQueryFromRequest($query_params);
-        $models = $query->paginate(isset($query_params['limit']) ? $query_params['limit'] : 10);
+        $models = $query->paginate(isset($query_params['limit']) && $query_params['limit'] > 0 ? $query_params['limit'] : 10);
 
         return self::formatPaginatedResponse($query_params, $models);
     }
@@ -470,7 +470,7 @@ class BaseCRUDService implements ICRUDService
             );
         }
 
-        if (isset($query_params['search'])) {
+        if (isset($query_params['search']) && strlen($query_params['search']) > 2) {
             $query->where(
                 function (Builder $query) use ($query_params) {
                     $sColumns = $this->crudProvider->getSearchableColumns();

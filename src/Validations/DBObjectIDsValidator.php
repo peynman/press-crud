@@ -10,10 +10,6 @@ class DBObjectIDsValidator
     public static function register()
     {
         Validator::extend('db_object_ids', function ($attributes, $values, $parameters, $validator) {
-            if (is_string($values)) {
-                $values = json_decode($values, true);
-            }
-
             if (is_array($values) && count($parameters) === 3) {
                 $ids = [];
                 foreach ($values as $value) {

@@ -121,7 +121,7 @@ trait BaseCRUDUser
     protected function checkRole($role)
     {
         foreach ($this->roles as $r) {
-            if ($role == $r->name) {
+            if ($role == $r->name || $role === $r->id) {
                 return true;
             }
         }

@@ -6,16 +6,20 @@ return [
     'user' => [
         'class' => App\Models\User::class,
     ],
+
     'permissions' => [
-        \Larapress\CRUD\Metadata\RoleMetadata::class,
+        \Larapress\CRUD\CRUD\RoleCRUDProvider::class,
     ],
     'controllers' => [
         \Larapress\CRUD\CRUDControllers\RoleController::class,
     ],
-
-    'JSONCRUDRenderOnJsonContentType' => [
+    'middlewares' => [
         'auth:api',
         CRUDAuthorizeRequest::class,
+    ],
+
+    'session' => [
+        'connection' => 'default'
     ],
 
     'routes' => [
