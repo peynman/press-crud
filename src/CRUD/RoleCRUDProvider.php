@@ -24,11 +24,13 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         'name' => 'required|string|unique:roles,name|max:190|regex:/(^[A-Za-z0-9-_.]+$)+/',
         'title' => 'required|string',
         'permissions.*.id' => 'nullable|exists:permissions,id',
+        'priority' => 'required|numeric',
     ];
     public $updateValidations = [
         'name' => 'required|string|max:190|regex:/(^[A-Za-z0-9-_.]+$)+/|unique:roles,name',
         'title' => 'required|string',
         'permissions.*.id' => 'nullable|exists:permissions,id',
+        'priority' => 'required|numeric',
     ];
     public $autoSyncRelations = [
         'permissions',

@@ -213,7 +213,12 @@ class BaseCRUDService implements ICRUDService
             throw $exception;
         }
 
-        event(new CRUDEvent\CRUDCreated($object, class_basename($this->crudProvider), Carbon::now()));
+        $with = $this->crudProvider->getEagerRelations();
+        if (! is_null($with)) {
+            $object->load($with);
+        }
+
+        event(new CRUDEvent\CRUDCreated($object, get_class($this->crudProvider), Carbon::now()));
 
         return $object;
     }
@@ -337,6 +342,11 @@ class BaseCRUDService implements ICRUDService
                 }
             }
         );
+
+        $with = $this->crudProvider->getEagerRelations();
+        if (! is_null($with)) {
+            $object->load($with);
+        }
 
         event(new CRUDEvent\CRUDUpdated($object, class_basename($this->crudProvider), Carbon::now()));
 

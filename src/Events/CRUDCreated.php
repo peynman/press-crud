@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Larapress\CRUD\Base\ICRUDProvider;
+use Larapress\CRUD\Base\IPermissionsMetadata;
 
 /**
  * Class CreatedEvent.
@@ -33,6 +34,9 @@ class CRUDCreated implements ShouldBroadcast
      */
     private $providerClass;
 
+    /** @var array */
+    public $data;
+
     /**
      * Create a new event instance.
      *
@@ -45,6 +49,11 @@ class CRUDCreated implements ShouldBroadcast
         $this->model = $model;
         $this->timestamp = $timestamp;
         $this->providerClass = $providerClass;
+        $this->data = [
+            'model' => $model,
+            'timestamp' => $timestamp,
+            'provider' => $providerClass,
+        ];
     }
 
     /**
@@ -54,7 +63,7 @@ class CRUDCreated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('crud.'.$this->providerClass.'.created');
+        return new PrivateChannel('crud.'.$this->getProvider()->getPermissionObjectName().'.create');
     }
 
     /**
@@ -74,7 +83,7 @@ class CRUDCreated implements ShouldBroadcast
     }
 
     /**
-     * @return \Larapress\CRUD\Base\ICRUDProvider
+     * @return \Larapress\CRUD\Base\ICRUDProvider|IPermissionsMetadata
      */
     public function getProvider(): ICRUDProvider
     {
