@@ -348,7 +348,7 @@ class BaseCRUDService implements ICRUDService
             $object->load($with);
         }
 
-        event(new CRUDEvent\CRUDUpdated($object, class_basename($this->crudProvider), Carbon::now()));
+        event(new CRUDEvent\CRUDUpdated($object, get_class($this->crudProvider), Carbon::now()));
 
         return $object;
     }

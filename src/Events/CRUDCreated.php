@@ -63,7 +63,7 @@ class CRUDCreated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('crud.'.$this->getProvider()->getPermissionObjectName().'.create');
+        return new PrivateChannel('crud.'.$this->getProvider()->getPermissionObjectName().'.'.IPermissionsMetadata::CREATE);
     }
 
     /**
