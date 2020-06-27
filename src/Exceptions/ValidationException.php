@@ -40,7 +40,7 @@ class ValidationException extends AppException
                 'validations' => $this->getValidations()->getMessageBag()->toArray(),
             ] : [
                 'code' => $this->getErrorCode(),
-                'message' => $this->isHttpException($this) ? $this->getMessage() : 'Server Error',
+                'message' => $this->getMessage(),
                 'validations' => $this->getValidations()->getMessageBag()->toArray(),
             ];
             return response()->json($error, 400);
