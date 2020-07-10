@@ -41,6 +41,8 @@ class AppException extends Exception
     const ERR_INVALID_CLASS_BINDING = 10033;
     const ERR_INVALID_ACTION_METHOD = 10034;
     const ERR_ACCOUNT_ALREADY_EXISTS = 10035;
+    const ERR_ACCESS_BANNED = 10036;
+    const ERR_NUMBER_ALREADY_EXISTS = 10037;
 
     private $error_code;
 

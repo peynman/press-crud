@@ -30,6 +30,10 @@ return [
 
     'prefix' => 'api',
 
+    'queue' => 'jobs',
+
+    'datetime-format' => 'Y-m-d\TH:i:sO',
+
     'languages' => [
         'en' => \Larapress\CRUD\Translation\Lang\Roman::class,
         'fa' => \Larapress\CRUD\Translation\Lang\Persian::class,

@@ -159,20 +159,6 @@ class Helpers
         return $args;
     }
 
-    public static function getArrayWithPath($array, $path)
-    {
-        $steps = explode('.', $path);
-        foreach ($steps as $step) {
-            if (isset($array[$step])) {
-                $array = $array[$step];
-            } else {
-                return [];
-            }
-        }
-
-        return $array;
-    }
-
     public static function getTimezonesList()
     {
         $zoneNames = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
@@ -333,6 +319,21 @@ class Helpers
         }
 
         return $args;
+    }
+
+
+    public static function getArrayWithPath($array, $path)
+    {
+        $steps = explode('.', $path);
+        foreach ($steps as $step) {
+            if (isset($array[$step])) {
+                $array = $array[$step];
+            } else {
+                return null;
+            }
+        }
+
+        return $array;
     }
 
     public static function getCachedValue($key, $callback, $tags, $ttl) {

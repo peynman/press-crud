@@ -18,6 +18,13 @@ class PermissionsRepository implements IPermissionsRepository
      */
     public function getVisiblePermissions($user)
     {
-        return Permission::whereIn('id', array_keys($user->getPermissions()))->get();
+        return Helpers::getCachedValue(
+            'larapress.users.'.$user->id.'.permissions',
+            function() use($user) {
+                return Permission::whereIn('id', array_keys($user->getPermissions()))->get();
+            },
+            ['roles', 'user:'.$user->id],
+            null
+        );
     }
 }

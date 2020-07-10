@@ -17,6 +17,13 @@ interface ICRUDProvider
     public function getModelClass();
 
     /**
+     * Undocumented function
+     *
+     * @return IReportSource[]
+     */
+    public function getReportSources();
+
+    /**
      * @return bool
      */
     public function shouldFilterRequestParamsByRules();
@@ -64,7 +71,7 @@ interface ICRUDProvider
     /**
      * @return array
      */
-    public function getExcludeUpdate();
+    public function getExcludeIfNull();
 
     /**
      * Undocumented function

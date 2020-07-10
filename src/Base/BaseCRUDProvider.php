@@ -40,6 +40,16 @@ trait BaseCRUDProvider
         return true;
     }
 
+
+    /**
+     * Undocumented function
+     *
+     * @return IReportSource
+     */
+    public function getReportSources() {
+        return isset($this->reportSources) ? $this->reportSources : [];
+    }
+
     /**
      * @return array
      */
@@ -115,9 +125,9 @@ trait BaseCRUDProvider
     /**
      * @return array
      */
-    public function getExcludeUpdate()
+    public function getExcludeIfNull()
     {
-        return isset($this->excludeFromUpdate) ? $this->excludeFromUpdate : [];
+        return isset($this->excludeIfNull) ? $this->excludeIfNull : [];
     }
 
     /**
@@ -351,11 +361,25 @@ trait BaseCRUDProvider
      * @param Model $object
      * @param array $data
      */
-    protected function syncBelongsToManyRelation($relation, $object, $data) {
+    protected function syncBelongsToManyRelation($relation, $object, $data, $callback = null, $attributes = null) {
         if (!empty($data[$relation])) {
             $ids = [];
             foreach ($data[$relation] as $datum) {
-                $ids[] = $datum['id'];
+                if (is_null($callback)) {
+                    if (is_null($attributes)) {
+                        $ids[] = $datum['id'];
+                    } else {
+                        $ids[$datum['id']] = $attributes($datum);
+                    }
+                } else {
+                    if ($callback($datum)) {
+                        if (is_null($attributes)) {
+                            $ids[] = $datum['id'];
+                        } else {
+                            $ids[$datum['id']] = $attributes($datum);
+                        }
+                    }
+                }
             }
 
             /** @var \Illuminate\Database\Eloquent\Relations\BelongsToMany $builder */

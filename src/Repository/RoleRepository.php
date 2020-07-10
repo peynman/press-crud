@@ -30,8 +30,8 @@ class RoleRepository implements IRoleRepository
             function() use ($user) {
                 return $user->roles()->orderBy('priority', 'DESC')->first();
             },
-            ['larapress', 'roles'],
-            Carbon::now()->addHours(1)
+            ['roles', 'user:'.$user->id],
+            null
         );
     }
 }

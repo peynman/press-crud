@@ -3,10 +3,12 @@
 namespace Larapress\CRUD\CRUD;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Larapress\CRUD\Base\BaseCRUDProvider;
 use Larapress\CRUD\Base\ICRUDProvider;
 use Larapress\CRUD\Base\IPermissionsMetadata;
 use Larapress\CRUD\Models\Role;
+use Larapress\CRUD\Repository\IRoleRepository;
 
 class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
 {
@@ -48,8 +50,7 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         'permissions',
     ];
     public $validFilters = [];
-    public $excludeFromUpdate = [
-        'name',
+    public $excludeIfNull = [
     ];
     public $searchColumns = [
         'name',
@@ -62,6 +63,12 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
 
     ];
 
+    /** @var IRoleRepository */
+    protected $repo;
+
+    /** @var ICRUDUser */
+    protected $user;
+
     /**
      * Exclude current id in name unique request
      *
@@ -69,7 +76,76 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      * @return void
      */
     public function getUpdateRules(Request $request) {
+        $this->repo = app(IRoleRepository::class);
+        $this->user = Auth::user();
+
         $this->updateValidations['name'] .= ',' . $request->route('id');
+        $this->updateValidations['priority'] .= '|gte:' . $this->repo->getUserHighestRole($this->user)->priority;
         return $this->updateValidations;
     }
+
+
+    /**
+     * @param Builder $query
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function onBeforeQuery($query)
+    {
+        $this->repo = app(IRoleRepository::class);
+        $this->user = Auth::user();
+
+        if (! $this->user->hasRole(config('larapress.profiles.security.roles.super-role'))) {
+            $query->where('priority', '>=', $this->repo->getUserHighestRole($this->user)->priority);
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param Role $object
+     *
+     * @return bool
+     */
+    public function onBeforeAccess($object)
+    {
+        $this->repo = app(IRoleRepository::class);
+        $this->user = Auth::user();
+        if (! $this->user->hasRole(config('larapress.profiles.security.roles.super-role'))) {
+            return $this->repo->getUserHighestRole($this->user)->priority >= $object->priority;
+        }
+
+        return true;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param [type] $object
+     * @param [type] $input_data
+     * @return void
+     */
+    public function onAfterCreate($object, $input_data)
+    {
+        $this->user = Auth::user();
+        if (!empty($input_data['permissions'])) {
+            $this->syncBelongsToManyRelation('permissions', $object, $input_data['permissions']);
+        }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param [type] $object
+     * @param [type] $input_data
+     * @return void
+     */
+    public function onAfterUpdate($object, $input_data)
+    {
+        $this->user = Auth::user();
+        if (!empty($input_data['permissions'])) {
+            $this->syncBelongsToManyRelation('permissions', $object, $input_data);
+        }
+    }
+
 }

@@ -17,7 +17,7 @@ trait BaseCRUDUser
      */
     public function forgetPermissionsCache()
     {
-        Cache::forget("larapress.cached..user.$this->id.permissions");
+        Cache::tags(['user:'.$this->id])->flush();
     }
 
     /**
@@ -74,7 +74,7 @@ trait BaseCRUDUser
     protected function checkPermission($permission)
     {
         if (is_null($this->permissions)) {
-            $this->permissions = Cache::get("larapress.cached..user.$this->id.permissions");
+            $this->permissions = Cache::get("larapress.users.$this->id.permissions.fast");
             if (is_null($this->permissions)) {
                 $perms = [];
                 /** @var Role[] $roles */
@@ -84,8 +84,8 @@ trait BaseCRUDUser
                         $perms[] = [$role_permission->id, $role_permission->name.'.'.$role_permission->verb];
                     }
                 }
-                Cache::tags(['permissions'])->put(
-                    "larapress.cached..user.$this->id.permissions",
+                Cache::tags(['permissions', 'user:'.$this->id])->put(
+                    "larapress.users.$this->id.permissions.fast",
                     $perms,
                     Carbon::now()->addHours(12)
                 );

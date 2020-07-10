@@ -136,6 +136,26 @@ abstract class BaseCRUDController extends Controller
         return $this->crudService->destroy($request, $id);
     }
 
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function reports(Request $request)
+    {
+        return $this->crudService->reports($request);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function export(Request $request)
     {
         return $this->crudService->export($request);
@@ -177,6 +197,11 @@ abstract class BaseCRUDController extends Controller
                 'methods' => ['POST'],
                 'url' => $name.'/filter',
                 'uses' => $controller.'@filter',
+            ],
+            'query.reports' => [
+                'methods' => ['POST'],
+                'url' => $name.'/reports',
+                'uses' => $controller.'@reports',
             ],
             'export' => [
                 'methods' => ['POST'],

@@ -101,5 +101,12 @@ interface ICRUDService
      *
      * @return Response
      */
+    public function reports(Request $request);
+
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function export(Request $request);
 }

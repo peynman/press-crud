@@ -38,7 +38,6 @@ class CRUDAuthorizeRequest
         }
 
         $required_permissions = self::getCRUDVerbPermissions($name_parts[0], $name_parts[1]);
-
         if (! is_null($required_permissions)) {
             if (! $user->hasPermission($required_permissions)) {
                 throw new AppException(AppException::ERR_ACCESS_DENIED);
@@ -65,7 +64,6 @@ class CRUDAuthorizeRequest
                 break;
             case 'store':
             case 'create':
-            case 'links-store':
                 $required_permissions[] = $name.'.'.IPermissionsMetadata::CREATE;
                 break;
             case 'edit':
@@ -76,11 +74,12 @@ class CRUDAuthorizeRequest
             case 'destroy':
                 $required_permissions[] = $name.'.'.IPermissionsMetadata::DELETE;
                 break;
-            case 'any':
-                $required_permissions = null;
+            case 'reports':
+                $required_permissions[] = $name.'.'.IPermissionsMetadata::REPORTS;
                 break;
+            case 'any':
             case 'custom':
-                $required_permissions = null;
+                    $required_permissions = null;
                 break;
             default:
                 $verb = str_replace('index', 'view', $verb);
