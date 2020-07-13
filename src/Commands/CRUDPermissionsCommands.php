@@ -68,7 +68,7 @@ class CRUDPermissionsCommands extends ActionCommandBase
                         $instance = new $meta_data_class();
                         $all_verbs = $instance->getPermissionVerbs();
                         foreach ($all_verbs as $verb_name) {
-                            $this->info($instance->getPermissionObjectName().' -> '.$verb_name);
+                            $this->info($instance->getPermissionObjectName().' -> '.$verb_name.' ['.class_basename($instance).']');
                             /* @var Permission $model */
                             Permission::firstOrCreate([
                                 'name' => $instance->getPermissionObjectName(),

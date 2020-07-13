@@ -43,6 +43,7 @@ class AppException extends Exception
     const ERR_ACCOUNT_ALREADY_EXISTS = 10035;
     const ERR_ACCESS_BANNED = 10036;
     const ERR_NUMBER_ALREADY_EXISTS = 10037;
+    const ERR_INVALID_FILE_TYPE = 10038;
 
     private $error_code;
 

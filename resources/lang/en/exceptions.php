@@ -13,5 +13,8 @@ return [
         AppException::ERR_NUMBER_ALREADY_EXISTS => 'این شماره برای کاربر دیگری در همین دامنه ثبت شده',
         AppException::ERR_OBJECT_NOT_FOUND => 'رکورد مورد نظر پیدا نشد',
         AppException::ERR_VALIDATION => 'مقادیر ورودی معتبر نیستند',
+        AppException::ERR_OBJ_ACCESS_DENIED => 'اجازه دسترسی به این رکورد وجود ندارد',
+        AppException::ERR_INVALID_FILE_TYPE => 'نوع فایل ارسالی قابل پذیرش نیست',
+        AppException::ERR_UNEXPECTED_RESULT => 'نتیجه مناسب بدست نیامد، لطفا با پشتیبانی تماس بگیرید'
     ],
 ];
