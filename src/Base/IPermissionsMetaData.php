@@ -12,7 +12,6 @@ interface IPermissionsMetadata
     const DELETE = 'destroy';
     const CREATE = 'create';
     const REPORTS = 'reports';
-    const SYNC = 'sync';
 
     /***
      * get permissions required for each CRUD operation

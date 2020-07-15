@@ -14,6 +14,7 @@ use Larapress\CRUD\Base\ICRUDExporter;
 use Larapress\CRUD\Base\ICRUDFilterStorage;
 use Larapress\CRUD\Base\ICRUDProvider;
 use Larapress\CRUD\Base\ICRUDService;
+use Larapress\CRUD\Base\IPermissionsMetadata;
 
 /**
  * Used by any resource that needs CRUD end points.
@@ -172,43 +173,51 @@ abstract class BaseCRUDController extends Controller
             $controller = '\\'.$controller;
         }
 
-        $verbs = array_merge([
-            'store' => [
+        /** @var IPermissionsMetadata */
+        $pro = new $provider();
+        $avVerbs = $pro->getPermissionVerbs();
+        $verbs = $additionalVerbs;
+
+        if (in_array(IPermissionsMetadata::CREATE, $avVerbs)) {
+            $verbs['store'] = [
                 'methods' => ['POST'],
                 'url' => $name,
                 'uses' => $controller.'@store',
-            ],
-            'update' => [
-                'methods' => ['PUT'],
-                'url' => $name.'/{id}',
-                'uses' => $controller.'@update',
-            ],
-            'destroy' => [
+            ];
+        }
+        if (in_array(IPermissionsMetadata::DELETE, $avVerbs)) {
+            $verbs['desroy'] = [
                 'methods' => ['DELETE'],
                 'url' => $name.'/{id}',
                 'uses' => $controller.'@destroy',
-            ],
-            'query' => [
+            ];
+        }
+        if (in_array(IPermissionsMetadata::EDIT, $avVerbs)) {
+            $verbs['update'] = [
+                'methods' => ['PUT'],
+                'url' => $name.'/{id}',
+                'uses' => $controller.'@update',
+            ];
+        }
+        if (in_array(IPermissionsMetadata::VIEW, $avVerbs)) {
+            $verbs['query'] = [
                 'methods' => ['POST'],
                 'url' => $name.'/query',
                 'uses' => $controller.'@query',
-            ],
-            'query.filter' => [
-                'methods' => ['POST'],
-                'url' => $name.'/filter',
-                'uses' => $controller.'@filter',
-            ],
-            'query.reports' => [
-                'methods' => ['POST'],
-                'url' => $name.'/reports',
-                'uses' => $controller.'@reports',
-            ],
-            'export' => [
+            ];
+            $verbs['export'] = [
                 'methods' => ['POST'],
                 'url' => $name.'/export',
                 'uses' => $controller.'@export',
-            ],
-        ], $additionalVerbs);
+            ];
+        }
+        if (in_array(IPermissionsMetadata::REPORTS, $avVerbs)) {
+            $verbs['reports'] = [
+                'methods' => ['POST'],
+                'url' => $name.'/reports',
+                'uses' => $controller.'@reports',
+            ];
+        }
 
         self::registerVerbs($name, $verbs, $provider);
     }

@@ -44,6 +44,7 @@ class AppException extends Exception
     const ERR_ACCESS_BANNED = 10036;
     const ERR_NUMBER_ALREADY_EXISTS = 10037;
     const ERR_INVALID_FILE_TYPE = 10038;
+    const ERR_ALREADY_EXECUTED = 10036;
 
     private $error_code;
 
