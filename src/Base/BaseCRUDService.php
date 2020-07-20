@@ -92,6 +92,14 @@ class BaseCRUDService implements ICRUDService
         $query = $this->getQueryFromRequest($query_params);
         $models = $query->paginate(isset($query_params['limit']) && $query_params['limit'] > 0 ? $query_params['limit'] : 10);
 
+        if (isset($query_params['appends'])) {
+            foreach ($query_params['appends'] as $append) {
+                if (isset($append['attribute'])) {
+                    $models->getCollection()->makeVisible($append['attribute']);
+                }
+            }
+        }
+
         return self::formatPaginatedResponse($query_params, $models);
     }
 

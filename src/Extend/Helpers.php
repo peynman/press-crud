@@ -9,18 +9,6 @@ use Illuminate\Support\Facades\Cache;
 
 class Helpers
 {
-    public static function enNumbers($numbers)
-    {
-        $fmt = \numfmt_create('fa', \NumberFormatter::DECIMAL);
-
-        return \numfmt_parse($fmt, PersianChar::numbers($numbers));
-    }
-
-    public static function faNumbers($numbers)
-    {
-        return PersianChar::numbers($numbers);
-    }
-
     public static function enNumberReplace($string)
     {
         $find = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -32,28 +20,6 @@ class Helpers
     public static function randomId()
     {
         return rand(100000, 1000000);
-    }
-
-    /**
-     * @param        $string
-     * @param string $format
-     *
-     * @return Carbon
-     */
-    public static function gregDate($string, $format = 'Y-m-d')
-    {
-        $date = null;
-        if (! is_null($string)) {
-            $date = Carbon::createFromFormat($format, self::enNumberReplace($string));
-            if (is_null($date) || $date < Carbon::create(1900, 1, 1)) {
-                $date = Jalalian::fromFormat($format, self::enNumberReplace($string));
-                if (! is_null($date)) {
-                    return $date->toCarbon();
-                }
-            }
-        }
-
-        return $date;
     }
 
     public static function getBase64($path)
@@ -130,33 +96,6 @@ class Helpers
         }
 
         return $found;
-    }
-
-    public static function inCache($key, $callback, $remember = '+1h')
-    {
-        $val = Cache::get($key);
-        if (is_null($val)) {
-            $val = $callback($key);
-            Cache::put($key, $val, Carbon::now($remember));
-        }
-
-        return $val;
-    }
-
-    public static function processDateTime($args, $key, $format = 'Y-m-d H:i:s')
-    {
-        if (isset($args[$key]) && ! is_null($args[$key])) {
-            $args[$key] =
-                self::gregDateString(
-                    self::gregDate(
-                        self::enNumberReplace($args[$key]),
-                        $format
-                    ),
-                    $format
-                );
-        }
-
-        return $args;
     }
 
     public static function getTimezonesList()
@@ -277,51 +216,6 @@ class Helpers
         return $arr1;
     }
 
-    /**
-     * @param        $objects
-     * @param string $id_column
-     *
-     * @return array
-     */
-    public static function getNormalizedObjectIds($objects, $id_column = 'id')
-    {
-        if (is_string($objects)) {
-            $objects = json_decode($objects, true);
-            if (is_string($objects)) {
-                $objects = json_decode($objects, true);
-                if (is_string($objects)) {
-                    $objects = json_decode($objects, true);
-                }
-            }
-        }
-        $normalized = [];
-        if (! is_null($objects)) {
-            foreach ($objects as $object) {
-                $normalized[] = $object[$id_column];
-            }
-        }
-
-        return $normalized;
-    }
-
-    /**
-     * @param $args
-     * @param $number_args
-     *
-     * @return mixed
-     */
-    public static function getNormalizedNumbers($args, $number_args)
-    {
-        foreach ($number_args as $number_arg) {
-            if (isset($args[$number_arg])) {
-                $args[$number_arg] = self::enNumbers($args[$number_arg]);
-            }
-        }
-
-        return $args;
-    }
-
-
     public static function getArrayWithPath($array, $path)
     {
         $steps = explode('.', $path);
@@ -344,5 +238,9 @@ class Helpers
         }
 
         return $result;
+    }
+
+    public static function getPathWithoutExtension($path) {
+        return substr($path, 0, strrpos($path, '.'));
     }
 }

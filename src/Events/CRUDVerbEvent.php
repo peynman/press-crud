@@ -91,6 +91,7 @@ class CRUDVerbEvent implements ShouldBroadcast
      */
     public function getProvider(): ICRUDProvider
     {
-        return new $this->providerClass;
+        $class = $this->data['provider'];
+        return new $class;
     }
 }
