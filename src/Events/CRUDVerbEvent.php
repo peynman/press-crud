@@ -9,8 +9,8 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Larapress\CRUD\Base\ICRUDProvider;
-use Larapress\CRUD\Base\IPermissionsMetadata;
+use Larapress\CRUD\Services\ICRUDProvider;
+use Larapress\CRUD\Services\IPermissionsMetadata;
 
 /**
  * Class CreatedEvent.
@@ -22,17 +22,17 @@ class CRUDVerbEvent implements ShouldBroadcast
     /**
      * @var Model
      */
-    protected $model;
+    public $model;
 
     /**
      * @var Carbon
      */
-    private $timestamp;
+    public $timestamp;
 
     /**
      * @var string
      */
-    private $providerClass;
+    public $providerClass;
 
     /** @var array */
     public $data;
@@ -87,7 +87,7 @@ class CRUDVerbEvent implements ShouldBroadcast
     }
 
     /**
-     * @return \Larapress\CRUD\Base\ICRUDProvider|IPermissionsMetadata
+     * @return \Larapress\CRUD\Services\ICRUDProvider|IPermissionsMetadata
      */
     public function getProvider(): ICRUDProvider
     {

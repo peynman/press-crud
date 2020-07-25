@@ -2,14 +2,18 @@
 
 namespace Larapress\CRUD\Commands;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Larapress\CRUD\Base\IPermissionsService;
 use Larapress\CRUD\Commands\ActionCommandBase;
-use Larapress\CRUD\Base\IPermissionsMetadata;
+use Larapress\CRUD\Services\IPermissionsMetadata;
+use Larapress\CRUD\Extend\Helpers;
 use Larapress\CRUD\ICRUDUser;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Models\Role;
+use Larapress\Pages\Repository\IPageRepository;
 
 class CRUDPermissionsCommands extends ActionCommandBase
 {
@@ -58,64 +62,45 @@ class CRUDPermissionsCommands extends ActionCommandBase
     private function updatePermissions()
     {
         return function () {
-            $meta_data_classes = config('larapress.crud.permissions');
-            $process_class_names = function ($meta_data_classes, $callback) {
-                foreach ($meta_data_classes as $meta_data_class) {
-                    if (Str::startsWith($meta_data_class, 'include::')) {
-                        $callback(config(Str::substr($meta_data_class, Str::length('include::'))), $callback);
-                    } else {
-                        /** @var IPermissionsMetadata $instance */
-                        $instance = new $meta_data_class();
-                        $all_verbs = $instance->getPermissionVerbs();
-                        foreach ($all_verbs as $verb_name) {
-                            $this->info($instance->getPermissionObjectName().' -> '.$verb_name.' ['.class_basename($instance).']');
-                            /* @var Permission $model */
-                            Permission::firstOrCreate([
-                                'name' => $instance->getPermissionObjectName(),
-                                'verb' => $verb_name,
-                            ]);
-                        }
-                    }
+            /** @var IPermissionsService */
+            $service = app(IPermissionsService::class);
+            $service->forEachRegisteredProviderClass(function($meta_data_class) {
+                /** @var IPermissionsMetadata $instance */
+                $instance = new $meta_data_class();
+                $all_verbs = $instance->getPermissionVerbs();
+                foreach ($all_verbs as $verb_name) {
+                    $this->info($instance->getPermissionObjectName().' -> '.$verb_name.' ['.class_basename($instance).']');
+                    /* @var Permission $model */
+                    Permission::firstOrCreate([
+                        'name' => $instance->getPermissionObjectName(),
+                        'verb' => $verb_name,
+                    ]);
                 }
-            };
-            $process_class_names($meta_data_classes, $process_class_names);
-            $this->updateSuperRole()();
+            });
+            $service->updateSuperRole();
+            $this->info('Super-Role updated with latest permissions, all users with super-role are updated too.');
         };
     }
 
     private function updateSuperRole()
     {
         return function () {
-            /** @var Role $super_role */
-            $super_role = Role::where('name', 'super-role')->first();
-            if (is_null($super_role)) {
-                $super_role = Role::create([
-                    'name' => 'super-role',
-                    'title' => 'Super Role',
-                    'priority' => self::SUPER_ROLE_PRIORITY,
-                ]);
-            }
-            /** @var int[] $permission_ids */
-            $permission_ids = Permission::query()->select('id')->pluck('id');
-            $super_role->permissions()->sync($permission_ids);
-
-            /** @var Builder $user_query */
-            $user_query = call_user_func([config('larapress.crud.user.class'), 'query']);
-            /** @var ICRUDUser[] $super_users */
-            $super_users = $user_query->whereHas(
-                'roles',
-                function (/* @var Builder $q */$q) {
-                    $q->where('name', 'super-role');
-                }
-            )->get();
-
-            foreach ($super_users as $super_user) {
-                $this->info('Permissions cache cleared for user: '.$super_user->name);
-                $super_user->forgetPermissionsCache();
-            }
-
+            /** @var IPermissionsService */
+            $service = app(IPermissionsService::class);
+            $service->updateSuperRole();
             $this->info('Super-Role updated with latest permissions, all users with super-role are updated too.');
         };
+    }
+
+
+    private function fillForm($form)
+    {
+        $data = [];
+        foreach ($form as $key => $val) {
+            $data[$key] = $this->ask($key, $val);
+        }
+
+        return $data;
     }
 
     private function updateSuperUserWithData($form)
@@ -154,15 +139,5 @@ class CRUDPermissionsCommands extends ActionCommandBase
         $permission_ids = Permission::query()->select('id')->pluck('id');
         $super_role->permissions()->sync($permission_ids);
         $user->forgetPermissionsCache();
-    }
-
-    private function fillForm($form)
-    {
-        $data = [];
-        foreach ($form as $key => $val) {
-            $data[$key] = $this->ask($key, $val);
-        }
-
-        return $data;
     }
 }

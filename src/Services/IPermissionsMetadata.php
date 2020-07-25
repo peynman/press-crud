@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Base;
+namespace Larapress\CRUD\Services;
 
 /**
  * Undocumented interface

@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\SessionService;
+namespace Larapress\CRUD\Services\Session;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;

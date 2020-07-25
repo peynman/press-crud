@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Base;
+namespace Larapress\CRUD\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
@@ -40,6 +40,15 @@ trait BaseCRUDProvider
         return true;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param mixed $object
+     * @return void
+     */
+    public function getExportArray($object) {
+        return [];
+    }
 
     /**
      * Undocumented function

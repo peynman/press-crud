@@ -9,7 +9,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Larapress\CRUD\Base\ICRUDProvider;
+use Larapress\CRUD\Services\ICRUDProvider;
 
 /**
  * Class CRUDDeleted.
@@ -74,7 +74,7 @@ class CRUDDeleted implements ShouldBroadcast
     }
 
     /**
-     * @return \Larapress\CRUD\Base\ICRUDProvider
+     * @return \Larapress\CRUD\Services\ICRUDProvider
      */
     public function getProvider(): ICRUDProvider
     {

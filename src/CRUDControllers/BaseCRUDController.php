@@ -3,18 +3,16 @@
 namespace Larapress\CRUD\CRUDControllers;
 
 use http\Env\Response;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
-use Larapress\CRUD\Base\ICRUDExporter;
-use Larapress\CRUD\Base\ICRUDFilterStorage;
-use Larapress\CRUD\Base\ICRUDProvider;
-use Larapress\CRUD\Base\ICRUDService;
-use Larapress\CRUD\Base\IPermissionsMetadata;
+use Larapress\CRUD\Services\ICRUDExporter;
+use Larapress\CRUD\Services\ICRUDProvider;
+use Larapress\CRUD\Services\ICRUDService;
+use Larapress\CRUD\Services\IPermissionsMetadata;
 
 /**
  * Used by any resource that needs CRUD end points.
@@ -30,15 +28,14 @@ abstract class BaseCRUDController extends Controller
      * extend the constructor and call $service->useProvide() to set your crud resource.
      *
      * @param ICRUDService $service
-     * @param \Larapress\CRUD\Base\ICRUDFilterStorage $filterStorage
-     * @param \Larapress\CRUD\Base\ICRUDExporter $crudExporter
+     * @param \Larapress\CRUD\Services\ICRUDFilterStorage $filterStorage
+     * @param \Larapress\CRUD\Services\ICRUDExporter $crudExporter
      * @param \Illuminate\Http\Request $request
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
-    public function __construct(ICRUDService $service, ICRUDFilterStorage $filterStorage, ICRUDExporter $crudExporter, Request $request)
+    public function __construct(ICRUDService $service, ICRUDExporter $crudExporter, Request $request)
     {
         $this->crudService = $service;
-        $this->crudService->useCRUDFilterStorage($filterStorage);
         $this->crudService->useCRUDExporter($crudExporter);
 
         if (! is_null($request->route())) {
@@ -64,20 +61,6 @@ abstract class BaseCRUDController extends Controller
     public function query(Request $request)
     {
         return $this->crudService->query($request);
-    }
-
-    /**
-     * filter the searching resources.
-     *
-     * @param Request $request
-     *
-     * @return LengthAwarePaginator
-     * @throws AppException
-     * @throws \Exception
-     */
-    public function filter(Request $request)
-    {
-        return $this->crudService->filter($request);
     }
 
     /**
@@ -176,24 +159,23 @@ abstract class BaseCRUDController extends Controller
         /** @var IPermissionsMetadata */
         $pro = new $provider();
         $avVerbs = $pro->getPermissionVerbs();
-        $verbs = $additionalVerbs;
-
+        $verbs = [];
         if (in_array(IPermissionsMetadata::CREATE, $avVerbs)) {
-            $verbs['store'] = [
+            $verbs[IPermissionsMetadata::CREATE] = [
                 'methods' => ['POST'],
                 'url' => $name,
                 'uses' => $controller.'@store',
             ];
         }
         if (in_array(IPermissionsMetadata::DELETE, $avVerbs)) {
-            $verbs['desroy'] = [
+            $verbs[IPermissionsMetadata::DELETE] = [
                 'methods' => ['DELETE'],
                 'url' => $name.'/{id}',
                 'uses' => $controller.'@destroy',
             ];
         }
         if (in_array(IPermissionsMetadata::EDIT, $avVerbs)) {
-            $verbs['update'] = [
+            $verbs[IPermissionsMetadata::EDIT] = [
                 'methods' => ['PUT'],
                 'url' => $name.'/{id}',
                 'uses' => $controller.'@update',
@@ -218,7 +200,7 @@ abstract class BaseCRUDController extends Controller
                 'uses' => $controller.'@reports',
             ];
         }
-
+        $verbs = array_merge($verbs, $additionalVerbs);
         self::registerVerbs($name, $verbs, $provider);
     }
 

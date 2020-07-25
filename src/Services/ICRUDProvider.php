@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Base;
+namespace Larapress\CRUD\Services;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -101,6 +101,14 @@ interface ICRUDProvider
      * @return array
      */
     public function getDeleteCascades();
+
+    /**
+     * Undocumented function
+     *
+     * @param mixed $object
+     * @return array
+     */
+    public function getExportArray($object);
 
     /**
      * @param Builder $query

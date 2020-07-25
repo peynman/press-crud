@@ -4,9 +4,9 @@ namespace Larapress\CRUD\CRUD;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Larapress\CRUD\Base\BaseCRUDProvider;
-use Larapress\CRUD\Base\ICRUDProvider;
-use Larapress\CRUD\Base\IPermissionsMetadata;
+use Larapress\CRUD\Services\BaseCRUDProvider;
+use Larapress\CRUD\Services\ICRUDProvider;
+use Larapress\CRUD\Services\IPermissionsMetadata;
 use Larapress\CRUD\Models\Role;
 use Larapress\CRUD\Repository\IRoleRepository;
 

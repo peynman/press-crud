@@ -5,7 +5,7 @@ namespace Larapress\CRUD\Middleware;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 use Larapress\CRUD\Exceptions\AppException;
-use Larapress\CRUD\Base\IPermissionsMetadata;
+use Larapress\CRUD\Services\IPermissionsMetadata;
 use Larapress\CRUD\ICRUDUser;
 
 class CRUDAuthorizeRequest
@@ -60,6 +60,7 @@ class CRUDAuthorizeRequest
             case 'show':
             case 'query':
             case 'view':
+            case 'export':
                 $required_permissions[] = $name.'.'.IPermissionsMetadata::VIEW;
                 break;
             case 'store':
@@ -79,13 +80,12 @@ class CRUDAuthorizeRequest
                 break;
             case 'any':
             case 'custom':
-                    $required_permissions = null;
+                $required_permissions = null;
                 break;
             default:
                 $verb = str_replace('index', 'view', $verb);
                 $verb = str_replace('show', 'view', $verb);
                 $verb = str_replace('query', 'view', $verb);
-                $verb = str_replace('view', 'view', $verb);
                 $required_permissions[] = $name.'.'.$verb;
                 break;
         }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Base;
+namespace Larapress\CRUD\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
@@ -21,11 +21,6 @@ interface ICRUDService
     public function useCRUDStorage(ICRUDStorage $storage);
 
     /**
-     * @param ICRUDFilterStorage $storage
-     */
-    public function useCRUDFilterStorage(ICRUDFilterStorage $storage);
-
-    /**
      * @param ICRUDExporter $exporter
      */
     public function useCRUDExporter(ICRUDExporter $exporter);
@@ -41,15 +36,16 @@ interface ICRUDService
      */
     public function query(Request $request);
 
+
     /**
-     * Filter the searching resourcess.
+     * Undocumented function
      *
      * @param Request $request
-     *
+     * @return Builder
      * @throws AppException
      * @throws \Exception
      */
-    public function filter(Request $request);
+    public function getQueryForRequest(Request $request);
 
     /**
      * Store a newly created resource in storage.

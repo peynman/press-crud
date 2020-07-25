@@ -6,9 +6,16 @@ use Carbon\Carbon;
 use Carbon\CarbonInterval;
 use DateTimeZone;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class Helpers
 {
+    /**
+     * Undocumented function
+     *
+     * @param string $string
+     * @return string
+     */
     public static function enNumberReplace($string)
     {
         $find = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -17,29 +24,22 @@ class Helpers
         return (string) str_replace($replace, $find, $string);
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return string
+     */
     public static function randomId()
     {
         return rand(100000, 1000000);
     }
 
-    public static function getBase64($path)
-    {
-        $type = pathinfo($path, PATHINFO_EXTENSION);
-        $data = file_get_contents($path);
-
-        return self::getBase64FromContent($data, $type);
-    }
-
-    public static function getBase64FromContent($content, $type)
-    {
-        return 'data:image/'.$type.';base64,'.base64_encode($content);
-    }
-
-    public static function gregDateString(Carbon $date, $format = 'Y-m-d')
-    {
-        return $date->format($format);
-    }
-
+    /**
+     * Undocumented function
+     *
+     * @param integer $len
+     * @return string
+     */
     public static function randomNumbers($len = 8)
     {
         $numbers = '1234567890';
@@ -51,6 +51,12 @@ class Helpers
         return $rnd;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param integer $len
+     * @return string
+     */
     public static function randomString($len = 5)
     {
         $numbers = 'qweuiopasdghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
@@ -62,6 +68,23 @@ class Helpers
         return $rnd;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param string $path
+     * @return string
+     */
+    public static function getPathWithoutExtension($path) {
+        return substr($path, 0, strrpos($path, '.'));
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param mixed $needle
+     * @param array $haystack
+     * @return bool
+     */
     public static function inArrayRecursive($needle, $haystack)
     {
         $found = false;
@@ -80,6 +103,13 @@ class Helpers
         return $found;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param mixed $needle
+     * @param array $haystack
+     * @return bool
+     */
     public static function inObjectRecursive($needle, $haystack)
     {
         $found = false;
@@ -98,6 +128,11 @@ class Helpers
         return $found;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
     public static function getTimezonesList()
     {
         $zoneNames = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
@@ -137,6 +172,13 @@ class Helpers
         return $timezones;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param array $objects
+     * @param int $size
+     * @return array
+     */
     public static function getArraySubsets($objects, $size)
     {
         $total = count($objects);
@@ -173,6 +215,13 @@ class Helpers
         return $output;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param string $url
+     * @param array $params
+     * @return string
+     */
     public static function addQueryParamToUrl($url, $params)
     {
         $query = parse_url($url, PHP_URL_QUERY);
@@ -183,11 +232,24 @@ class Helpers
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param string $string
+     * @return string
+     */
     public static function getNoSpace($string)
     {
         return str_replace(' ', '', $string);
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param string $file
+     * @param callable $pass
+     * @return void
+     */
     public static function walkCSV($file, $pass)
     {
         $handle = fopen($file, 'r');
@@ -199,6 +261,13 @@ class Helpers
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param array $arr1
+     * @param array $arr2
+     * @return array
+     */
     public static function arrayMergeRecursive($arr1, $arr2)
     {
         foreach ($arr2 as $key => $value) {
@@ -216,6 +285,13 @@ class Helpers
         return $arr1;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param array $array
+     * @param string $path
+     * @return mixed
+     */
     public static function getArrayWithPath($array, $path)
     {
         $steps = explode('.', $path);
@@ -230,6 +306,15 @@ class Helpers
         return $array;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param string $key
+     * @param callable $callback
+     * @param array $tags
+     * @param int $ttl
+     * @return mixed
+     */
     public static function getCachedValue($key, $callback, $tags, $ttl) {
         $result = Cache::get($key, null);
         if (is_null($result)) {
@@ -238,9 +323,5 @@ class Helpers
         }
 
         return $result;
-    }
-
-    public static function getPathWithoutExtension($path) {
-        return substr($path, 0, strrpos($path, '.'));
     }
 }

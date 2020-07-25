@@ -3,13 +3,15 @@
 namespace Larapress\CRUD\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Larapress\CRUD\Base\BaseCRUDService;
-use Larapress\CRUD\Base\ICRUDService;
+use Larapress\CRUD\Services\IPermissionsService;
+use Larapress\CRUD\Services\BaseCRUDService;
+use Larapress\CRUD\Services\ICRUDService;
 use Larapress\CRUD\Commands\CRUDPermissionsCommands;
 use Larapress\CRUD\Repository\IPermissionsRepository;
 use Larapress\CRUD\Repository\IRoleRepository;
 use Larapress\CRUD\Repository\PermissionsRepository;
 use Larapress\CRUD\Repository\RoleRepository;
+use Larapress\CRUD\Services\PermissionsService;
 use Larapress\CRUD\Validations\DateTimeZonedValidator;
 use Larapress\CRUD\Validations\DBObjectIDsValidator;
 
@@ -25,6 +27,7 @@ class PackageServiceProvider extends ServiceProvider
         $this->app->bind(ICRUDService::class, BaseCRUDService::class);
         $this->app->bind(IRoleRepository::class, RoleRepository::class);
         $this->app->bind(IPermissionsRepository::class, PermissionsRepository::class);
+        $this->app->bind(IPermissionsService::class, PermissionsService::class);
     }
 
     /**

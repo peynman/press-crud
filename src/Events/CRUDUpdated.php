@@ -4,7 +4,7 @@ namespace Larapress\CRUD\Events;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Larapress\CRUD\Base\IPermissionsMetadata;
+use Larapress\CRUD\Services\IPermissionsMetadata;
 
 /**
  * Class CreatedEvent.

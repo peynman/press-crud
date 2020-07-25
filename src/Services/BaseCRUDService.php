@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Base;
+namespace Larapress\CRUD\Services;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -29,25 +29,13 @@ class BaseCRUDService implements ICRUDService
      */
     public $crudProvider;
     /**
-     * @var ICRUDStorage
-     */
-    public $crudStorage;
-    /**
-     * @var ICRUDFilterStorage
-     */
-    public $crudFilterStorage;
-    /**
      * @var ICRUDExporter
      */
     public $crudExporter;
-
     /**
-     * @param ICRUDFilterStorage $storage
+     * @var ICRUDStorage
      */
-    public function useCRUDFilterStorage(ICRUDFilterStorage $storage)
-    {
-        $this->crudFilterStorage = $storage;
-    }
+    public $crudStorage;
 
     /**
      * @param ICRUDProvider $provider
@@ -58,19 +46,18 @@ class BaseCRUDService implements ICRUDService
     }
 
     /**
-     * @param ICRUDStorage $storage
-     */
-    public function useCRUDStorage(ICRUDStorage $storage)
-    {
-        $this->crudStorage = $storage;
-    }
-
-    /**
      * @param ICRUDExporter $exporter
      */
     public function useCRUDExporter(ICRUDExporter $exporter)
     {
         $this->crudExporter = $exporter;
+    }
+
+    /**
+     * @param ICRUDStorage $storage
+     */
+    public function useCRUDStorage(ICRUDStorage $storage) {
+        $this->crudStorage = $storage;
     }
 
     /**
@@ -83,6 +70,32 @@ class BaseCRUDService implements ICRUDService
      */
     public function query(Request $request)
     {
+        $query = $this->getQueryForRequest($request);
+        $limit = $request->get('limit', 10);
+        $models = $query->paginate($limit);
+
+        $appends = $request->get('appends', []);
+        if (isset($appends)) {
+            foreach ($appends as $append) {
+                if (isset($append['attribute'])) {
+                    $models->getCollection()->makeVisible($append['attribute']);
+                }
+            }
+        }
+
+        return self::formatPaginatedResponse($request->all(['ref_id']), $models);
+    }
+
+
+    /**
+     * Undocumented function
+     *
+     * @param Request $request
+     * @return Builder
+     * @throws AppException
+     * @throws \Exception
+     */
+    public function getQueryForRequest(Request $request) {
         $query_string = $request->getContent();
         $query_params = json_decode($query_string, true);
         if (is_null($query_params)) {
@@ -90,76 +103,8 @@ class BaseCRUDService implements ICRUDService
         }
 
         $query = $this->getQueryFromRequest($query_params);
-        $models = $query->paginate(isset($query_params['limit']) && $query_params['limit'] > 0 ? $query_params['limit'] : 10);
-
-        if (isset($query_params['appends'])) {
-            foreach ($query_params['appends'] as $append) {
-                if (isset($append['attribute'])) {
-                    $models->getCollection()->makeVisible($append['attribute']);
-                }
-            }
-        }
-
-        return self::formatPaginatedResponse($query_params, $models);
+        return $query;
     }
-
-    /**
-     * @param Request $request
-     *
-     * @return array
-     */
-    public function filter(Request $request)
-    {
-        /**
-         * @var int
-         */
-        $userId = auth()->guest() ? null : auth()->user()->id;
-        $reqSessionId = $request->get('session');
-        $sessionId = null;
-        if (!is_null($reqSessionId) && is_string($reqSessionId)) {
-            $sessionId = $reqSessionId;
-        } else {
-            $session = $request->getSession();
-            if (is_null($session)) {
-                $sessionId = 'global-session';
-            } else {
-                $sessionId = $session->getId();
-            }
-        }
-        $filterKey = $this->crudFilterStorage->getFilterKey(
-            $sessionId,
-            get_class($this->crudProvider)
-        );
-        if ($request->get('reset') === true) {
-            $this->crudFilterStorage->putFilters($filterKey, null, $userId);
-
-            return [];
-        }
-
-        if ($request->get('view') === true) {
-            return response()->json($this->crudFilterStorage->getFilters($filterKey, [], $userId));
-        }
-
-        $recordFilters = [];
-        $availableOptions = array_merge($this->crudProvider->getFilterFields(), [
-            'settings' => 'storage',
-            'options' => 'storage',
-            'theme' => 'storage',
-            'view' => 'storage',
-        ]);
-        foreach ($availableOptions as $field => $options) {
-            if (!is_null($request->get($field))) {
-                $value = $request->get($field);
-                if (!is_null($value)) {
-                    $recordFilters[$field] = $value;
-                }
-            }
-        }
-        $this->crudFilterStorage->putFilters($filterKey, $recordFilters, $userId);
-
-        return $recordFilters;
-    }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -173,7 +118,6 @@ class BaseCRUDService implements ICRUDService
     public function store(Request $request)
     {
         $createRules = $this->crudProvider->getCreateRules($request);
-        $translations = $this->crudProvider->getTranslations();
 
         if ($this->crudProvider->shouldFilterRequestParamsByRules()) {
             $askedKeys = array_keys($createRules);
@@ -202,13 +146,6 @@ class BaseCRUDService implements ICRUDService
             }
         }
         $data = $this->crudProvider->onBeforeCreate($input_data);
-
-        $translations_object = [];
-        foreach ($translations as $field) {
-            $translations_object[$field] = $data[$field]['translations'];
-            unset($data[$field]);
-        }
-        $data['translations'] = $translations_object;
 
         try {
             DB::beginTransaction();
@@ -292,7 +229,6 @@ class BaseCRUDService implements ICRUDService
     public function update(Request $request, $id)
     {
         $updateRules = $this->crudProvider->getUpdateRules($request);
-        $translations = $this->crudProvider->getTranslations();
 
         $input_data = null;
         if ($this->crudProvider->shouldFilterRequestParamsByRules()) {
@@ -322,13 +258,6 @@ class BaseCRUDService implements ICRUDService
             }
         }
         $data = $this->crudProvider->onBeforeUpdate($input_data);
-
-        $translations_object = [];
-        foreach ($translations as $field) {
-            $translations_object[$field] = $data[$field]['translations'];
-            unset($data[$field]);
-        }
-        $data['translations'] = $translations_object;
 
         $object = $this->crudProvider->getObjectFromID($id);
         if (is_null($object)) {
@@ -456,18 +385,7 @@ class BaseCRUDService implements ICRUDService
      */
     public function export(Request $request)
     {
-        $userId = auth()->guest() ? null : auth()->user()->id;
-        $filterKey = $this->crudFilterStorage->getFilterKey(
-            $request->getSession()->getId(),
-            class_basename($this->crudProvider)
-        );
-        $filters = $this->crudFilterStorage->getFilters($filterKey, null, $userId);
-        $params = [];
-        if (!is_null($filters)) {
-            $params = ['filters' => $filters];
-        }
-        $query = $this->getQueryFromRequest($params);
-
+        $query = $this->getQueryForRequest($request);
         return $this->crudExporter->getResponseForQueryExport($request, $query, $this->crudProvider);
     }
 
@@ -606,7 +524,15 @@ class BaseCRUDService implements ICRUDService
                             $query->where($parts[1], '=', $filters[$field]);
                             break;
                         case 'like':
-                            $query->where($parts[1], 'LIKE', '%' . $filters[$field] . '%');
+                            if (strlen($filters[$field]) > 3) {
+                                $query->where($parts[1], 'LIKE', '%' . $filters[$field] . '%');
+                            }
+                            break;
+                        case 'in':
+                            if (is_array($filters[$field]) && count($filters[$field]) > 0) {
+                                $ins = array_keys($filters[$field]);
+                                $query->whereIn($parts[1], $ins);
+                            }
                             break;
                     }
                 }
