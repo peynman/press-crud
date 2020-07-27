@@ -17,5 +17,6 @@ return [
         AppException::ERR_INVALID_FILE_TYPE => 'نوع فایل ارسالی قابل پذیرش نیست',
         AppException::ERR_UNEXPECTED_RESULT => 'نتیجه مناسب بدست نیامد، لطفا با پشتیبانی تماس بگیرید',
         AppException::ERR_ALREADY_EXECUTED => 'قبلا اجرا شده است.',
+        AppException::ERR_OBJ_NOT_READY => 'رکورد مورد نظر اماده نیست'
     ],
 ];
