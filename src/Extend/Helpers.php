@@ -324,4 +324,15 @@ class Helpers
 
         return $result;
     }
+
+
+    /**
+     * Undocumented function
+     *
+     * @param mixed $var
+     * @return boolean
+     */
+    public static function isAssocArray($var) {
+            return is_array($var) && array_diff_key($var,array_keys(array_keys($var)));
+    }
 }

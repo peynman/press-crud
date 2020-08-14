@@ -21,7 +21,8 @@ class PermissionsRepository implements IPermissionsRepository
         return Helpers::getCachedValue(
             'larapress.users.'.$user->id.'.permissions',
             function() use($user) {
-                return Permission::whereIn('id', array_keys($user->getPermissions()))->get();
+                $mypermissions = array_map(function($p) { return $p[0]; }, $user->getPermissions());
+                return Permission::whereIn('id', $mypermissions)->get();
             },
             ['roles', 'user:'.$user->id],
             null

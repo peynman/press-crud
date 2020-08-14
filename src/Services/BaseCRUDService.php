@@ -509,7 +509,11 @@ class BaseCRUDService implements ICRUDService
                             if (is_array($values) && isset($values[0][isset($parts[3]) ? $parts[3] : 'id'])) {
                                 $values = collect($values)->pluck('id')->toArray();
                             } else {
-                                $values = array_keys($values);
+                                if (is_array($values)) {
+                                    $values = array_keys($values);
+                                } else {
+                                    $values = [$values];
+                                }
                             }
                             if (count($values) > 0) {
                                 $query->whereHas(
@@ -520,8 +524,33 @@ class BaseCRUDService implements ICRUDService
                                 );
                             }
                             break;
+                        case 'has-has':
+                            $values = $filters[$field];
+                            if (is_array($values) && isset($values[0][isset($parts[3]) ? $parts[3] : 'id'])) {
+                                $values = collect($values)->pluck('id')->toArray();
+                            } else {
+                                if (is_array($values)) {
+                                    $values = array_keys($values);
+                                } else {
+                                    $values = [$values];
+                                }
+                            }
+                            if (count($values) > 0) {
+                                $query->whereHas(
+                                    $parts[1],
+                                    function (Builder $q) use ($values, $parts) {
+                                        $q->whereHas($parts[2], function($q) use($parts, $values) {
+                                            $q->whereIn($parts[3], $values);
+                                        });
+                                    }
+                                );
+                            }
+                        break;
                         case 'equals':
                             $query->where($parts[1], '=', $filters[$field]);
+                            break;
+                        case 'bitwise':
+                            $query->where($parts[1], '&', $filters[$field]);
                             break;
                         case 'like':
                             if (strlen($filters[$field]) > 3) {

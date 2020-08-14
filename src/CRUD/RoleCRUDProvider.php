@@ -80,7 +80,7 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         $this->user = Auth::user();
 
         $this->updateValidations['name'] .= ',' . $request->route('id');
-        $this->updateValidations['priority'] .= '|gte:' . $this->repo->getUserHighestRole($this->user)->priority;
+        $this->updateValidations['priority'] .= '|lte:' . $this->repo->getUserHighestRole($this->user)->priority;
         return $this->updateValidations;
     }
 
