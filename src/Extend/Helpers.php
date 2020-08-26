@@ -316,7 +316,7 @@ class Helpers
      * @return mixed
      */
     public static function getCachedValue($key, $callback, $tags, $ttl) {
-        $result = Cache::get($key, null);
+        $result = Cache::tags($tags)->get($key, null);
         if (is_null($result)) {
             $result = $callback();
             Cache::tags($tags)->put($key, $result, $ttl);

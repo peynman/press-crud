@@ -4,6 +4,7 @@ namespace Larapress\CRUD\CRUD;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Larapress\CRUD\Services\BaseCRUDProvider;
 use Larapress\CRUD\Services\ICRUDProvider;
 use Larapress\CRUD\Services\IPermissionsMetadata;
@@ -146,6 +147,9 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         if (!empty($input_data['permissions'])) {
             $this->syncBelongsToManyRelation('permissions', $object, $input_data);
         }
+
+        Cache::tags(['user.permissions:'.$object->id])->flush();
+        Cache::tags(['user.roles:'.$object->id])->flush();
     }
 
 }

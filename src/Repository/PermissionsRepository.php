@@ -24,7 +24,7 @@ class PermissionsRepository implements IPermissionsRepository
                 $mypermissions = array_map(function($p) { return $p[0]; }, $user->getPermissions());
                 return Permission::whereIn('id', $mypermissions)->get();
             },
-            ['roles', 'user:'.$user->id],
+            ['user.permissions:'.$user->id],
             null
         );
     }

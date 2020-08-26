@@ -4,6 +4,7 @@ namespace Larapress\CRUD;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Larapress\CRUD\Extend\Helpers;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Models\Role;
 
@@ -17,7 +18,7 @@ trait BaseCRUDUser
      */
     public function forgetPermissionsCache()
     {
-        Cache::tags(['user:'.$this->id])->flush();
+        Cache::tags(['user.permissions:'.$this->id])->flush();
     }
 
     /**
@@ -74,23 +75,22 @@ trait BaseCRUDUser
     protected function checkPermission($permission)
     {
         if (is_null($this->permissions)) {
-            $this->permissions = Cache::get("larapress.users.$this->id.permissions.fast");
-            if (is_null($this->permissions)) {
-                $perms = [];
-                /** @var Role[] $roles */
-                $roles = $this->roles()->with('permissions')->get();
-                foreach ($roles as $role) {
-                    foreach ($role->permissions as $role_permission) {
-                        $perms[] = [$role_permission->id, $role_permission->name.'.'.$role_permission->verb];
+            $this->permissions = Helpers::getCachedValue(
+                "larapress.users.$this->id.permissions.fast",
+                function() {
+                    $perms = [];
+                    /** @var Role[] $roles */
+                    $roles = $this->roles()->with('permissions')->get();
+                    foreach ($roles as $role) {
+                        foreach ($role->permissions as $role_permission) {
+                            $perms[] = [$role_permission->id, $role_permission->name.'.'.$role_permission->verb];
+                        }
                     }
-                }
-                Cache::tags(['permissions', 'user:'.$this->id])->put(
-                    "larapress.users.$this->id.permissions.fast",
-                    $perms,
-                    Carbon::now()->addHours(12)
-                );
-                $this->permissions = $perms;
-            }
+                    return $perms;
+                },
+                ['user.permissions:'.$this->id],
+                null
+            );
         }
         if (is_object($permission)) {
             foreach ($this->permissions as $my_permission) {

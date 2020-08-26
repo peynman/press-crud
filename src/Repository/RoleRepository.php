@@ -30,7 +30,7 @@ class RoleRepository implements IRoleRepository
             function() use ($user) {
                 return $user->roles()->orderBy('priority', 'DESC')->first();
             },
-            ['roles', 'user:'.$user->id],
+            ['user.roles:'.$user->id],
             null
         );
     }
