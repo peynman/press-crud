@@ -335,7 +335,7 @@ class BaseCRUDService implements ICRUDService
                     //                    }
                     //                    $this->crudProvider->onAfterDestroyCascades($object);
                     //                }
-                    //                $this->crudProvider->onAfterDestroy($object);
+                    $this->crudProvider->onAfterDestroy($object);
                 }
             }
         );
