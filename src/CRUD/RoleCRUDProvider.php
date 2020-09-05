@@ -148,8 +148,12 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
             $this->syncBelongsToManyRelation('permissions', $object, $input_data);
         }
 
-        Cache::tags(['user.permissions:'.$object->id])->flush();
-        Cache::tags(['user.roles:'.$object->id])->flush();
+        // @todo: add cache reset for users with this role
+        $object->users()->chunk(100, function($users) {
+            foreach ($users as $user) {
+                $user->forgetPermissionsCache();
+            }
+        });
     }
 
 }
