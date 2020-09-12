@@ -494,7 +494,7 @@ class BaseCRUDService implements ICRUDService
             $filters = $query_params['filters'];
             $availableFilters = $this->crudProvider->getFilterFields();
             foreach ($availableFilters as $field => $options) {
-                if (isset($filters[$field]) && !is_null($filters[$field]) && count(array_keys($filters[$field])) > 0) {
+                if (isset($filters[$field]) && !is_null($filters[$field]) && (! is_array($filters[$field]) || count(array_keys($filters[$field])) > 0)) {
                     if (is_callable($options)) {
                         $options($query, $filters[$field]);
                         continue;
