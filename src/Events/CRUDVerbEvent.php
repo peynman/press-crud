@@ -40,6 +40,9 @@ class CRUDVerbEvent implements ShouldBroadcast
     /** @var string */
     public $verb;
 
+    /** @var mixed */
+    public $user;
+
     /**
      * Create a new event instance.
      *
@@ -47,8 +50,9 @@ class CRUDVerbEvent implements ShouldBroadcast
      * @param string $providerClass
      * @param Carbon $timestamp
      */
-    public function __construct(Model $model, string $providerClass, Carbon $timestamp, $verb)
+    public function __construct($user, Model $model, string $providerClass, Carbon $timestamp, $verb)
     {
+        $this->user = $user;
         $this->model = $model;
         $this->timestamp = $timestamp;
         $this->providerClass = $providerClass;

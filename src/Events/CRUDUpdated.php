@@ -11,8 +11,8 @@ use Larapress\CRUD\Services\IPermissionsMetadata;
  */
 class CRUDUpdated extends CRUDVerbEvent
 {
-    public function __construct(Model $model, string $providerClass, Carbon $timestamp)
+    public function __construct($user, Model $model, string $providerClass, Carbon $timestamp)
     {
-        parent::__construct($model, $providerClass, $timestamp, IPermissionsMetadata::EDIT);
+        parent::__construct($user, $model, $providerClass, $timestamp, IPermissionsMetadata::EDIT);
     }
 }

@@ -32,6 +32,9 @@ class CRUDDeleted implements ShouldBroadcast
      */
     private $providerClass;
 
+    /** @var mixed */
+    public $user;
+
     /**
      * Create a new event instance.
      *
@@ -39,9 +42,10 @@ class CRUDDeleted implements ShouldBroadcast
      * @param string $providerClass
      * @param Carbon $timestamp
      */
-    public function __construct(Model $model, string $providerClass, Carbon $timestamp)
+    public function __construct($user, Model $model, string $providerClass, Carbon $timestamp)
     {
         //
+        $this->user = $user;
         $this->model = $model;
         $this->timestamp = $timestamp;
         $this->providerClass = $providerClass;

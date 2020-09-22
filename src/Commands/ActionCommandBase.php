@@ -33,6 +33,6 @@ abstract class ActionCommandBase extends Command
             }
         }
 
-        $this->error('action '.$action.'not found!');
+        $this->error('action '.$action.' not found!');
     }
 }

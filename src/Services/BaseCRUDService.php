@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
 use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\Exceptions\ValidationException;
 use Larapress\CRUD\Events as CRUDEvent;
+use Larapress\CRUD\Events\CRUDCreated;
+use Larapress\CRUD\Events\CRUDUpdated;
 
 /**
  * Class BaseCRUDService.
@@ -70,20 +72,30 @@ class BaseCRUDService implements ICRUDService
      */
     public function query(Request $request)
     {
-        $query = $this->getQueryForRequest($request);
-        $limit = $request->get('limit', 10);
-        $models = $query->paginate($limit);
+        [$query, $total] = $this->getQueryForRequest($request);
+        $models = $query->get();
+        if ($total === -1) {
+            $total = $models->count();
+        }
 
         $appends = $request->get('appends', []);
         if (isset($appends)) {
             foreach ($appends as $append) {
                 if (isset($append['attribute'])) {
-                    $models->getCollection()->makeVisible($append['attribute']);
+                    $models->makeVisible($append['attribute']);
                 }
             }
         }
 
-        return self::formatPaginatedResponse($request->all(['ref_id']), $models);
+        return [
+            'data' => $models,
+            'total' => $total,
+            'from' => ($request->get('page', 1) - 1) * $request->get('limit', 10),
+            'to' => $request->get('page', 1) * $request->get('limit', 10),
+            'current_page' => $request->get('page', 0),
+            'per_page' => $request->get('limit', 10),
+            'ref_id' => $request->get('ref_id'),
+        ];
     }
 
 
@@ -169,7 +181,7 @@ class BaseCRUDService implements ICRUDService
             $object->load($with);
         }
 
-        event(new CRUDEvent\CRUDCreated($object, get_class($this->crudProvider), Carbon::now()));
+        CRUDCreated::dispatch(Auth::user(), $object, get_class($this->crudProvider), Carbon::now());
 
         return $object;
     }
@@ -291,7 +303,7 @@ class BaseCRUDService implements ICRUDService
             $object->load($with);
         }
 
-        event(new CRUDEvent\CRUDUpdated($object, get_class($this->crudProvider), Carbon::now()));
+        CRUDUpdated::dispatch(Auth::user(), $object, get_class($this->crudProvider), Carbon::now());
 
         return $object;
     }
@@ -420,29 +432,6 @@ class BaseCRUDService implements ICRUDService
                 }
             }
         }
-
-        if (isset($query_params['sort'])) {
-            foreach ($query_params['sort'] as $sort) {
-                if (isset($sort['column']) && isset($sort['direction'])) {
-                    if (in_array($sort['column'], $this->crudProvider->getValidSortColumns())) {
-                        $order = $sort['direction'] === 'asc' ? 'ASC' : 'DESC';
-                        $query->orderBy($sort['column'], $order);
-                    } else {
-                        throw new AppException(AppException::ERR_INVALID_QUERY);
-                    }
-                }
-            }
-        }
-
-        if (isset($query_params['page'])) {
-            $paginate_from = $query_params['page'];
-            Paginator::currentPageResolver(
-                function () use ($paginate_from) {
-                    return $paginate_from;
-                }
-            );
-        }
-
         if (isset($query_params['search']) && strlen($query_params['search']) >= 2) {
             if (Str::startsWith($query_params['search'], '#')) {
                 $query->where('id', substr($query_params['search'], 1));
@@ -571,8 +560,41 @@ class BaseCRUDService implements ICRUDService
                 }
             }
         }
+        if (isset($query_params['sort'])) {
+            foreach ($query_params['sort'] as $sort) {
+                if (isset($sort['column']) && isset($sort['direction'])) {
+                    if (in_array($sort['column'], $this->crudProvider->getValidSortColumns())) {
+                        $order = $sort['direction'] === 'asc' ? 'ASC' : 'DESC';
+                        $query->orderBy($sort['column'], $order);
+                    } else {
+                        throw new AppException(AppException::ERR_INVALID_QUERY);
+                    }
+                }
+            }
+        }
 
-        return $query;
+        $cq = clone $query;
+        // get total items count for pagination if query is not a search
+        if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
+            $total = $cq->count();
+        } else {
+            $total = -1;
+        }
+        // no more pagination by laravel eloquent
+        if (isset($query_params['page'])) {
+            $paginate_from = intval($query_params['page']) - 1;
+            // use pagination if we are not searching
+            if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
+                $limit = isset($query_params['limit']) ? $query_params['limit']: 10;
+                $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
+                if (!is_null($offset)) {
+                    $query->where('id', '<=', $offset->id);
+                }
+                $query->take($limit);
+            }
+        }
+
+        return [$query, $total];
     }
 
     /**
