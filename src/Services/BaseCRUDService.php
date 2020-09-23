@@ -523,7 +523,7 @@ class BaseCRUDService implements ICRUDService
                                 $values = collect($values)->pluck('id')->toArray();
                             } else {
                                 if (is_array($values)) {
-                                    $values = array_keys($values);
+                                    $values = array_values($values);
                                 } else {
                                     $values = [$values];
                                 }
