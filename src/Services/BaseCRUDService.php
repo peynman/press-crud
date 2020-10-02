@@ -19,6 +19,7 @@ use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\Exceptions\ValidationException;
 use Larapress\CRUD\Events as CRUDEvent;
 use Larapress\CRUD\Events\CRUDCreated;
+use Larapress\CRUD\Events\CRUDDeleted;
 use Larapress\CRUD\Events\CRUDUpdated;
 
 /**
@@ -352,7 +353,7 @@ class BaseCRUDService implements ICRUDService
             }
         );
 
-        event(new CRUDEvent\CRUDDeleted($object, class_basename($this->crudProvider), Carbon::now()));
+        CRUDDeleted::dispatch(Auth::user(), $object, get_class($this->crudProvider), Carbon::now());
 
         return response()->json($object);
     }
@@ -436,47 +437,54 @@ class BaseCRUDService implements ICRUDService
             if (Str::startsWith($query_params['search'], '#')) {
                 $query->where('id', substr($query_params['search'], 1));
             } else {
-                $query->where(
-                    function (Builder $query) use ($query_params) {
-                        $sColumns = $this->crudProvider->getSearchableColumns();
-                        if (count($sColumns) > 0) {
-                            foreach ($sColumns as $column) {
-                                $parts = explode(':', $column);
-                                if (count($parts) == 1) {
-                                    $query->orWhere($column, 'LIKE', '%' . $query_params['search'] . '%');
-                                } else {
-                                    switch ($parts[0]) {
-                                        case 'has':
-                                            $has = explode(',', $parts[1]);
-                                            if (count($has) == 2) {
-                                                $query->orWhereHas(
-                                                    $has[0],
-                                                    function (Builder $q) use ($query_params, $has) {
-                                                        $q->where($has[1], 'LIKE', '%' . $query_params['search'] . '%');
-                                                    }
-                                                );
+                $sColumns = $this->crudProvider->getSearchableColumns();
+                $searchIndexer = 0;
+                if (count($sColumns) > 0) {
+                    foreach ($sColumns as $column) {
+                        $parts = explode(':', $column);
+                        // dont clone and union the query for last search column
+                        if ($searchIndexer === count($sColumns) - 1) {
+                            $search = $query;
+                        } else {
+                            $search = clone $query;
+                        }
+                        $searchIndexer++;
+                        if (count($parts) == 1) {
+                            $search->where($column, 'LIKE', '%' . $query_params['search'] . '%');
+                        } else {
+                            switch ($parts[0]) {
+                                case 'has':
+                                    $has = explode(',', $parts[1]);
+                                    if (count($has) == 2) {
+                                        $search->whereHas(
+                                            $has[0],
+                                            function (Builder $q) use ($query_params, $has) {
+                                                $q->where($has[1], 'LIKE', '%' . $query_params['search'] . '%');
                                             }
-                                            break;
-                                        case 'has_exact':
-                                            $has = explode(',', $parts[1]);
-                                            if (count($has) == 2) {
-                                                $query->orWhereHas(
-                                                    $has[0],
-                                                    function (Builder $q) use ($query_params, $has) {
-                                                        $q->where($has[1], 'LIKE', $query_params['search']);
-                                                    }
-                                                );
-                                            }
-                                            break;
-                                        case 'equals':
-                                            $query->orWhere($parts[1], '=', $query_params['search']);
-                                            break;
+                                        );
                                     }
-                                }
+                                    break;
+                                case 'has_exact':
+                                    $has = explode(',', $parts[1]);
+                                    if (count($has) == 2) {
+                                        $search->whereHas(
+                                            $has[0],
+                                            function (Builder $q) use ($query_params, $has) {
+                                                $q->where($has[1], $query_params['search']);
+                                            }
+                                        );
+                                    }
+                                    break;
+                                case 'equals':
+                                    $search->where($parts[1], '=', $query_params['search']);
+                                    break;
                             }
                         }
+                        if ($search !== $query) {
+                            $query->union($search);
+                        }
                     }
-                );
+                }
             }
         }
         if (isset($query_params['filters'])) {

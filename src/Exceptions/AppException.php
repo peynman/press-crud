@@ -45,6 +45,9 @@ class AppException extends Exception
     const ERR_NUMBER_ALREADY_EXISTS = 10037;
     const ERR_INVALID_FILE_TYPE = 10038;
     const ERR_ALREADY_EXECUTED = 10036;
+    const ERR_NOT_ENOUGHT_ITEMS_IN_CART = 10037;
+    const ERR_NOT_ENOUGHT_AMOUNT_IN_CART = 10038;
+    const ERR_NOT_GIFT_EXPIRED = 10039;
 
     private $error_code;
 

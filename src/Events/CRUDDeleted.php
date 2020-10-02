@@ -20,17 +20,17 @@ class CRUDDeleted implements ShouldBroadcast
     /**
      * @var Model
      */
-    private $model;
+    public $model;
 
     /**
      * @var Carbon
      */
-    private $timestamp;
+    public $timestamp;
 
     /**
      * @var string
      */
-    private $providerClass;
+    public $providerClass;
 
     /** @var mixed */
     public $user;
