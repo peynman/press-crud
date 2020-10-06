@@ -594,11 +594,15 @@ class BaseCRUDService implements ICRUDService
             // use pagination if we are not searching
             if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
                 $limit = isset($query_params['limit']) ? $query_params['limit']: 10;
-                $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
-                if (!is_null($offset)) {
-                    $query->where('id', '<=', $offset->id);
+                if ($total > 100) {
+                    $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
+                    if (!is_null($offset)) {
+                        $query->where('id', '<=', $offset->id);
+                    }
+                    $query->take($limit);
+                } else {
+                    $query->skip($paginate_from * $limit)->take($limit);
                 }
-                $query->take($limit);
             }
         }
 
