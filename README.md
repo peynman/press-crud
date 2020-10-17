@@ -1,6 +1,6 @@
+# W.I.P.
 
 # Larapress CRUD
-####### Warning: THIS PACKAGE IS UNDER DEVELOPMENT
 
 [![CircleCI](https://circleci.com/gh/peynman/larapress-crud.svg?style=svg)](https://circleci.com/gh/peynman/larapress-crud)
 [![Coverage Status](https://img.shields.io/codecov/c/github/peynman/larapress-crud.svg?branch=master&style=flat-square)](https://codecov.io/github/peynman/larapress-crud?branch=master)
@@ -10,8 +10,8 @@
 [![StyleCI](https://styleci.io/repos/227614981/shield)](https://styleci.io/repos/227614981)
 
 ## What is it for?
-Larapress CRUD is a Create/Read/Update/Delete resource management framework, with:
-* Easy name.verb based authorisation
+Larapress CRUD is a Create/Read/Update/Delete resource management api, with:
+* Easy name.verb based authorization
 * Simple yet overridable pipelines
 * Reusable code principles in mind
 
@@ -34,7 +34,7 @@ class MyResourceController extends BaseCRUDController
     public static function registerRoutes()
     {
         parent::registerCrudRoutes(
-            $name, // the resource name, comments, posts, pages, etc.
+            $name, // the resource name; comments, posts, pages, etc.
             self::class,
             ActivateCodeCRUDProvider::class // a reference to a class implementing the interface ICRUDProvider
         );
