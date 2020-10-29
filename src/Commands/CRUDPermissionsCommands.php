@@ -54,7 +54,7 @@ class CRUDPermissionsCommands extends ActionCommandBase
                 'password' => null,
             ];
             $form = $this->fillForm($form);
-            $this->updateSuperUserWithData($form);
+            self::updateSuperUserWithData($form);
             $this->info('Account updated with super-role.');
         };
     }
@@ -103,7 +103,7 @@ class CRUDPermissionsCommands extends ActionCommandBase
         return $data;
     }
 
-    private function updateSuperUserWithData($form)
+    public static function updateSuperUserWithData($form)
     {
         /** @var Builder $user_quer */
         $user_quer = call_user_func([config('larapress.crud.user.class'), 'query']);

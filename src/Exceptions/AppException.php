@@ -48,6 +48,7 @@ class AppException extends Exception
     const ERR_NOT_ENOUGHT_ITEMS_IN_CART = 10040;
     const ERR_NOT_ENOUGHT_AMOUNT_IN_CART = 10041;
     const ERR_NOT_GIFT_EXPIRED = 10042;
+    const ERR_USER_HAS_NO_DOMAIN = 10043;
 
     private $error_code;
 

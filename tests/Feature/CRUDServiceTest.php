@@ -7,7 +7,7 @@ class CRUDServiceTest extends Orchestra\Testbench\TestCase
      *
      * @return void
      */
-    public function testBasicTest()
+    public function testCRUDTest()
     {
         $this->assertTrue(true);
     }
