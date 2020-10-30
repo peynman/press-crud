@@ -2,10 +2,8 @@
 
 namespace Larapress\CRUD\Commands;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Larapress\CRUD\Services\IPermissionsService;
 use Larapress\CRUD\Commands\ActionCommandBase;
 use Larapress\CRUD\Services\IPermissionsMetadata;
