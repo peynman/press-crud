@@ -75,7 +75,11 @@ abstract class BaseCRUDController extends Controller
      */
     public function store(Request $request)
     {
-        return response()->json($this->crudService->store($request));
+        $object = $this->crudService->store($request);
+        return response()->json([
+            'message' => trans('larapress::crud.create_success', ['id' => $object->id]),
+            'object' => $object->id,
+        ]);
     }
 
     /**
@@ -104,7 +108,11 @@ abstract class BaseCRUDController extends Controller
      */
     public function update(Request $request, $id)
     {
-        return $this->crudService->update($request, $id);
+        $object = $this->crudService->update($request, $id);
+        return response()->json([
+            'message' => trans('larapress::crud.create_success', ['id' => $object->id]),
+            'object' => $object->id,
+        ]);
     }
 
     /**

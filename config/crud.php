@@ -1,10 +1,9 @@
 <?php
 
-use Larapress\CRUD\Middleware\CRUDAuthorizeRequest;
-
 return [
     'user' => [
         'class' => App\Models\User::class,
+        'crud-provider' => \Larapress\Profiles\CRUD\UserCRUDProvider::class,
     ],
 
     'permissions' => [
@@ -14,8 +13,13 @@ return [
         \Larapress\CRUD\CRUDControllers\RoleController::class,
     ],
     'middlewares' => [
+        'api',
         'auth:api',
-        CRUDAuthorizeRequest::class,
+        \Larapress\CRUD\Middleware\CRUDAuthorizeRequest::class,
+    ],
+    'broadcast-middlewares' => [
+        'api',
+        'auth:api',
     ],
 
     'session' => [
