@@ -21,6 +21,7 @@ return [
         AppException::ERR_NOT_ENOUGHT_ITEMS_IN_CART => 'تعداد محصولات سبد برای استفاده از کد تخفیف کافی نیست',
         AppException::ERR_NOT_ENOUGHT_AMOUNT_IN_CART => 'مبلغ سبد برای استفاده از کد تخفیف کافی نیست',
         AppException::ERR_NOT_GIFT_EXPIRED => 'کد تخفیف منقضی شده است',
-        AppException::ERR_REJECTED_RESULT => 'مشکلی از سمت سامانه پذیرنده پیش آمد. لطفا بعدا تلاش کنید'
+        AppException::ERR_REJECTED_RESULT => 'مشکلی از سمت سامانه پذیرنده پیش آمد. لطفا بعدا تلاش کنید',
+        AppException::ERR_USER_HAS_NO_DOMAIN => 'دامنه‌ای برای کاربر ثبت نشده است',
     ],
 ];

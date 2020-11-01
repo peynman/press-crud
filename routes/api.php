@@ -1,7 +1,9 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Larapress\CRUD\Services\IBaseCRUDBroadcast;
 
 Route::middleware(config('larapress.crud.middlewares'))
     ->prefix(config('larapress.crud.prefix'))
@@ -22,4 +24,12 @@ Route::middleware(config('larapress.crud.middlewares'))
             }
         };
         $registerControllers($controllers, $registerControllers);
+    });
+
+Route::middleware(config('larapress.crud.broadcast-middlewares'))
+    ->prefix(config('larapress.crud.prefix'))
+    ->post('/broadcast/auth', function (Request $request) {
+        /** @var IBaseCRUDBroadcast */
+        $service = app(IBaseCRUDBroadcast::class);
+        return $service->authenticateRequest($request);
     });

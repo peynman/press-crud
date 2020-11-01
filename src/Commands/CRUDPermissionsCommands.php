@@ -2,10 +2,8 @@
 
 namespace Larapress\CRUD\Commands;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Larapress\CRUD\Services\IPermissionsService;
 use Larapress\CRUD\Commands\ActionCommandBase;
 use Larapress\CRUD\Services\IPermissionsMetadata;
@@ -54,7 +52,7 @@ class CRUDPermissionsCommands extends ActionCommandBase
                 'password' => null,
             ];
             $form = $this->fillForm($form);
-            $this->updateSuperUserWithData($form);
+            self::updateSuperUserWithData($form);
             $this->info('Account updated with super-role.');
         };
     }
@@ -103,7 +101,7 @@ class CRUDPermissionsCommands extends ActionCommandBase
         return $data;
     }
 
-    private function updateSuperUserWithData($form)
+    public static function updateSuperUserWithData($form)
     {
         /** @var Builder $user_quer */
         $user_quer = call_user_func([config('larapress.crud.user.class'), 'query']);
