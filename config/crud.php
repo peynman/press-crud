@@ -5,6 +5,7 @@ use Larapress\CRUD\Middleware\CRUDAuthorizeRequest;
 return [
     'user' => [
         'class' => App\Models\User::class,
+        'crud-provider' => App\CustomUserCRUDProvider::class,
     ],
 
     'permissions' => [

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
-Route::middleware(config('larapress.crud.middleware'))
+Route::middleware(config('larapress.crud.middlewares'))
     ->prefix(config('larapress.crud.prefix'))
     ->group(function () {
         $controllers = config('larapress.crud.controllers');
