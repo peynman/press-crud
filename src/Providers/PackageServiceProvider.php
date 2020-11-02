@@ -42,6 +42,7 @@ class PackageServiceProvider extends ServiceProvider
     {
         $this->loadTranslationsFrom(__DIR__.'/../../resources/lang', 'larapress');
         $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
+        $this->loadRoutesFrom(__DIR__.'/../../routes/channels.php');
         $this->loadMigrationsFrom(__DIR__.'/../../migrations');
 
         $this->publishes(
@@ -56,6 +57,7 @@ class PackageServiceProvider extends ServiceProvider
                 CRUDPermissionsCommands::class,
             ]);
         }
+
 
         DBObjectIDsValidator::register();
         DateTimeZonedValidator::register();
