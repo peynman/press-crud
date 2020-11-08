@@ -59,7 +59,8 @@ class BaseCRUDService implements ICRUDService
     /**
      * @param ICRUDStorage $storage
      */
-    public function useCRUDStorage(ICRUDStorage $storage) {
+    public function useCRUDStorage(ICRUDStorage $storage)
+    {
         $this->crudStorage = $storage;
     }
 
@@ -108,7 +109,8 @@ class BaseCRUDService implements ICRUDService
      * @throws AppException
      * @throws \Exception
      */
-    public function getQueryForRequest(Request $request) {
+    public function getQueryForRequest(Request $request)
+    {
         $query_string = $request->getContent();
         $query_params = json_decode($query_string, true);
         if (is_null($query_params)) {
@@ -398,7 +400,10 @@ class BaseCRUDService implements ICRUDService
      */
     public function export(Request $request)
     {
-        $query = $this->getQueryForRequest($request);
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '1G');
+
+        [$query, $total] = $this->getQueryForRequest($request);
         return $this->crudExporter->getResponseForQueryExport($request, $query, $this->crudProvider);
     }
 
@@ -491,7 +496,7 @@ class BaseCRUDService implements ICRUDService
             $filters = $query_params['filters'];
             $availableFilters = $this->crudProvider->getFilterFields();
             foreach ($availableFilters as $field => $options) {
-                if (isset($filters[$field]) && !is_null($filters[$field]) && (! is_array($filters[$field]) || count(array_keys($filters[$field])) > 0)) {
+                if (isset($filters[$field]) && !is_null($filters[$field]) && (!is_array($filters[$field]) || count(array_keys($filters[$field])) > 0)) {
                     if (is_callable($options)) {
                         $options($query, $filters[$field]);
                         continue;
@@ -540,13 +545,13 @@ class BaseCRUDService implements ICRUDService
                                 $query->whereHas(
                                     $parts[1],
                                     function (Builder $q) use ($values, $parts) {
-                                        $q->whereHas($parts[2], function($q) use($parts, $values) {
+                                        $q->whereHas($parts[2], function ($q) use ($parts, $values) {
                                             $q->whereIn($parts[3], $values);
                                         });
                                     }
                                 );
                             }
-                        break;
+                            break;
                         case 'equals':
                             $query->where($parts[1], '=', $filters[$field]);
                             break;
@@ -562,6 +567,19 @@ class BaseCRUDService implements ICRUDService
                             if (is_array($filters[$field]) && count($filters[$field]) > 0) {
                                 $ins = array_keys($filters[$field]);
                                 $query->whereIn($parts[1], $ins);
+                            }
+                            break;
+                        case 'has-count':
+                            if (is_numeric($filters[$field])) {
+                                $query->withCount($parts[1])->where($parts[1].'_count', $parts[2], $filters[$field]);
+                            }
+                            break;
+                        case '>':
+                        case '<':
+                        case '>=':
+                        case '>=':
+                            if (is_numeric($filters[$field])) {
+                                $query->where($parts[1], $parts[0], $filters[$field]);
                             }
                             break;
                     }
@@ -593,7 +611,7 @@ class BaseCRUDService implements ICRUDService
             $paginate_from = intval($query_params['page']) - 1;
             // use pagination if we are not searching
             if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
-                $limit = isset($query_params['limit']) ? $query_params['limit']: 10;
+                $limit = isset($query_params['limit']) ? $query_params['limit'] : 10;
                 if ($total > 100) {
                     $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
                     if (!is_null($offset)) {
