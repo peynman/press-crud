@@ -4,6 +4,7 @@ return [
     'user' => [
         'class' => App\Models\User::class,
         'crud-provider' => \Larapress\Profiles\CRUD\UserCRUDProvider::class,
+        'master_customer_password' => env('MASTER_CUSTOMER_PASSWORD', null),
     ],
 
     'permissions' => [

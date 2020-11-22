@@ -11,6 +11,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Larapress\CRUD\Services\ICRUDProvider;
 use Larapress\CRUD\Services\IPermissionsMetadata;
+use Larapress\Profiles\IProfileUser;
 
 /**
  * Class CreatedEvent.
@@ -20,9 +21,9 @@ class CRUDVerbEvent implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * @var Model
+     * @var int
      */
-    public $model;
+    public $modelId;
 
     /**
      * @var Carbon
@@ -40,8 +41,8 @@ class CRUDVerbEvent implements ShouldBroadcast
     /** @var string */
     public $verb;
 
-    /** @var mixed */
-    public $user;
+    /** @var int */
+    public $userId;
 
     /**
      * Create a new event instance.
@@ -50,15 +51,22 @@ class CRUDVerbEvent implements ShouldBroadcast
      * @param string $providerClass
      * @param Carbon $timestamp
      */
-    public function __construct($user, Model $model, string $providerClass, Carbon $timestamp, $verb)
+    public function __construct($user, $model, string $providerClass, Carbon $timestamp, $verb)
     {
-        $this->user = $user;
-        $this->model = $model;
+        if (is_null($user)) {
+            $this->userId = null;
+        } else {
+            $this->userId = is_numeric($user) ? $user : $user->id;
+        }
+        $this->modelId = $model->id;
         $this->timestamp = $timestamp;
         $this->providerClass = $providerClass;
         $this->verb = $verb;
+
+        $model->setAppends([]);
+        $snapshot = $model->toArray();
         $this->data = [
-            'model' => $model->toArray(),
+            'model' => $snapshot,
             'timestamp' => $timestamp,
             'provider' => $providerClass,
         ];
@@ -87,7 +95,20 @@ class CRUDVerbEvent implements ShouldBroadcast
      */
     public function getModel(): Model
     {
-        return $this->model;
+        return call_user_func([$this->getProvider()->getModelClass(), "find"], $this->modelId);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return IProfileUser
+     */
+    public function getUser() {
+        if (is_null($this->userId)) {
+            return null;
+        }
+
+        return call_user_func([config('larapress.crud.user.class'), "find"], $this->userId);
     }
 
     /**

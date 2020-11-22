@@ -41,11 +41,11 @@ interface ICRUDService
      * Undocumented function
      *
      * @param Request $request
-     * @return Builder
+     * @return [Builder, int]
      * @throws AppException
      * @throws \Exception
      */
-    public function getQueryForRequest(Request $request);
+    public function buildQueryForRequest(Request $request, $onBeforeQuery = null);
 
     /**
      * Store a newly created resource in storage.

@@ -74,7 +74,7 @@ class BaseCRUDService implements ICRUDService
      */
     public function query(Request $request)
     {
-        [$query, $total] = $this->getQueryForRequest($request);
+        [$query, $total] = $this->buildQueryForRequest($request);
         $models = $query->get();
         if ($total === -1) {
             $total = $models->count();
@@ -100,7 +100,6 @@ class BaseCRUDService implements ICRUDService
         ];
     }
 
-
     /**
      * Undocumented function
      *
@@ -109,7 +108,7 @@ class BaseCRUDService implements ICRUDService
      * @throws AppException
      * @throws \Exception
      */
-    public function getQueryForRequest(Request $request)
+    public function buildQueryForRequest(Request $request, $onBeforeQuery = null)
     {
         $query_string = $request->getContent();
         $query_params = json_decode($query_string, true);
@@ -117,8 +116,7 @@ class BaseCRUDService implements ICRUDService
             $query_params = [];
         }
 
-        $query = $this->getQueryFromRequest($query_params);
-        return $query;
+        return $this->getQueryFromRequest($query_params, $onBeforeQuery);
     }
     /**
      * Store a newly created resource in storage.
@@ -403,7 +401,7 @@ class BaseCRUDService implements ICRUDService
         ini_set('max_execution_time', 0);
         ini_set('memory_limit', '1G');
 
-        [$query, $total] = $this->getQueryForRequest($request);
+        [$query, $total] = $this->buildQueryForRequest($request);
         return $this->crudExporter->getResponseForQueryExport($request, $query, $this->crudProvider);
     }
 
@@ -413,10 +411,13 @@ class BaseCRUDService implements ICRUDService
      * @return Builder
      * @throws AppException
      */
-    protected function getQueryFromRequest($query_params)
+    protected function getQueryFromRequest($query_params, $onBeforeQuery = null)
     {
         /*** @var Builder $query */
         $query = $this->crudProvider->onBeforeQuery(call_user_func([$this->crudProvider->getModelClass(), 'query']));
+        if (!is_null($onBeforeQuery)) {
+            $onBeforeQuery($query);
+        }
 
         if (isset($query_params['with'])) {
             foreach ($query_params['with'] as $relation) {
@@ -425,10 +426,12 @@ class BaseCRUDService implements ICRUDService
                     $relation_columns = $relation['columns'];
                     if (in_array($name, $this->crudProvider->getValidRelations())) {
                         if (is_string($relation_columns)) {
-                            $relation_columns = explode(',', $relation_columns);
+                            $relation_columns = array_map(function($item){
+                                return trim($item);
+                            }, explode(',', $relation_columns));
                         }
                         $query->with([$name => function ($q) use ($relation_columns) {
-                            if (count($relation_columns) > 0) {
+                            if (count($relation_columns) > 0 && $relation_columns[0] !== "*") {
                                 $q->select($relation_columns);
                             }
                         }]);
@@ -560,7 +563,7 @@ class BaseCRUDService implements ICRUDService
                             break;
                         case 'like':
                             if (strlen($filters[$field]) > 3) {
-                                $query->where($parts[1], 'LIKE', '%' . $filters[$field] . '%');
+                                $query->where($parts[1], 'LIKE', $filters[$field]);
                             }
                             break;
                         case 'in':
