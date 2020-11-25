@@ -18,9 +18,9 @@ class CRUDDeleted implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
     /**
-     * @var Model
+     * @var int
      */
-    public $model;
+    public $modelId;
 
     /**
      * @var Carbon
@@ -32,8 +32,8 @@ class CRUDDeleted implements ShouldBroadcast
      */
     public $providerClass;
 
-    /** @var mixed */
-    public $user;
+    /** @var int */
+    public $userId;
 
     /**
      * Create a new event instance.
@@ -45,8 +45,8 @@ class CRUDDeleted implements ShouldBroadcast
     public function __construct($user, Model $model, string $providerClass, Carbon $timestamp)
     {
         //
-        $this->user = $user;
-        $this->model = $model;
+        $this->userId = is_numeric($user) ? $user : $user->id;
+        $this->modelId = $model->id;
         $this->timestamp = $timestamp;
         $this->providerClass = $providerClass;
     }
@@ -58,30 +58,37 @@ class CRUDDeleted implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('crud.'.$this->providerClass.'.deleted');
+        return new PrivateChannel('crud.'.$this->getProvider()->getPermissionObjectName().'.deleted');
+    }
+
+
+
+    /**
+     * Undocumented function
+     *
+     * @return IProfileUser
+     */
+    public function getUser() {
+        if (is_null($this->userId)) {
+            return null;
+        }
+
+        return call_user_func([config('larapress.crud.user.class'), "find"], $this->userId);
     }
 
     /**
-     * @return Model
+     * @return \Larapress\CRUD\Services\ICRUDProvider|IPermissionsMetadata
      */
-    public function getModel(): Model
+    public function getProvider(): ICRUDProvider
     {
-        return $this->model;
+        $class = $this->providerClass;
+        return new $class;
     }
-
     /**
      * @return Carbon
      */
     public function getTimestamp(): Carbon
     {
         return $this->timestamp;
-    }
-
-    /**
-     * @return \Larapress\CRUD\Services\ICRUDProvider
-     */
-    public function getProvider(): ICRUDProvider
-    {
-        return new $this->providerClass;
     }
 }
