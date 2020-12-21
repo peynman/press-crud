@@ -21,6 +21,7 @@ use Larapress\CRUD\Events as CRUDEvent;
 use Larapress\CRUD\Events\CRUDCreated;
 use Larapress\CRUD\Events\CRUDDeleted;
 use Larapress\CRUD\Events\CRUDUpdated;
+use Larapress\CRUD\Extend\Helpers;
 
 /**
  * Class BaseCRUDService.
@@ -413,6 +414,8 @@ class BaseCRUDService implements ICRUDService
      */
     protected function getQueryFromRequest($query_params, $onBeforeQuery = null)
     {
+        /** @var IProfileUser */
+        $user = Auth::user();
         /*** @var Builder $query */
         $query = $this->crudProvider->onBeforeQuery(call_user_func([$this->crudProvider->getModelClass(), 'query']));
         if (!is_null($onBeforeQuery)) {
@@ -424,82 +427,43 @@ class BaseCRUDService implements ICRUDService
                 if (isset($relation['name']) && isset($relation['columns'])) {
                     $name = $relation['name'];
                     $relation_columns = $relation['columns'];
-                    if (in_array($name, $this->crudProvider->getValidRelations())) {
+                    $validations = $this->crudProvider->getValidRelations();
+                    if (Helpers::isAssocArray($validations)) {
+                        $validationNames = array_keys($validations);
+                    } else {
+                        $validationNames = array_values($validations);
+                    }
+                    if (in_array($name, $validationNames)) {
                         if (is_string($relation_columns)) {
                             $relation_columns = array_map(function($item){
                                 return trim($item);
                             }, explode(',', $relation_columns));
                         }
-                        $query->with([$name => function ($q) use ($relation_columns) {
-                            if (count($relation_columns) > 0 && $relation_columns[0] !== "*") {
-                                $q->select($relation_columns);
-                            }
-                        }]);
+                        $shouldInclude = true;
+                        if (isset($validations[$name]) && is_callable($validations[$name])) {
+                            $shouldInclude = $validations[$name]($user);
+                        }
+                        if ($shouldInclude) {
+                            $query->with([$name => function ($q) use ($relation_columns) {
+                                if (count($relation_columns) > 0 && $relation_columns[0] !== "*") {
+                                    $q->select($relation_columns);
+                                }
+                            }]);
+                        }
                     } else {
                         throw new AppException(AppException::ERR_INVALID_QUERY);
                     }
                 }
             }
         }
-        if (isset($query_params['search']) && strlen($query_params['search']) >= 2) {
-            if (Str::startsWith($query_params['search'], '#')) {
-                $query->where('id', substr($query_params['search'], 1));
-            } else {
-                $sColumns = $this->crudProvider->getSearchableColumns();
-                $searchIndexer = 0;
-                if (count($sColumns) > 0) {
-                    foreach ($sColumns as $column) {
-                        $parts = explode(':', $column);
-                        // dont clone and union the query for last search column
-                        if ($searchIndexer === count($sColumns) - 1) {
-                            $search = $query;
-                        } else {
-                            $search = clone $query;
-                        }
-                        $searchIndexer++;
-                        if (count($parts) == 1) {
-                            $search->where($column, 'LIKE', '%' . $query_params['search'] . '%');
-                        } else {
-                            switch ($parts[0]) {
-                                case 'has':
-                                    $has = explode(',', $parts[1]);
-                                    if (count($has) == 2) {
-                                        $search->whereHas(
-                                            $has[0],
-                                            function (Builder $q) use ($query_params, $has) {
-                                                $q->where($has[1], 'LIKE', '%' . $query_params['search'] . '%');
-                                            }
-                                        );
-                                    }
-                                    break;
-                                case 'has_exact':
-                                    $has = explode(',', $parts[1]);
-                                    if (count($has) == 2) {
-                                        $search->whereHas(
-                                            $has[0],
-                                            function (Builder $q) use ($query_params, $has) {
-                                                $q->where($has[1], $query_params['search']);
-                                            }
-                                        );
-                                    }
-                                    break;
-                                case 'equals':
-                                    $search->where($parts[1], '=', $query_params['search']);
-                                    break;
-                            }
-                        }
-                        if ($search !== $query) {
-                            $query->union($search);
-                        }
-                    }
-                }
-            }
-        }
+
+        $hasFilters = false;
         if (isset($query_params['filters'])) {
             $filters = $query_params['filters'];
             $availableFilters = $this->crudProvider->getFilterFields();
             foreach ($availableFilters as $field => $options) {
                 if (isset($filters[$field]) && !is_null($filters[$field]) && (!is_array($filters[$field]) || count(array_keys($filters[$field])) > 0)) {
+                    $hasFilters = true;
                     if (is_callable($options)) {
                         $options($query, $filters[$field]);
                         continue;
@@ -589,6 +553,62 @@ class BaseCRUDService implements ICRUDService
                 }
             }
         }
+
+        if (isset($query_params['search']) && strlen($query_params['search']) >= 2 && !$hasFilters) {
+            if (Str::startsWith($query_params['search'], '#')) {
+                $query->where('id', substr($query_params['search'], 1));
+            } else {
+                $sColumns = $this->crudProvider->getSearchableColumns();
+                $searchIndexer = 0;
+                if (count($sColumns) > 0) {
+                    foreach ($sColumns as $column) {
+                        $parts = explode(':', $column);
+                        // dont clone and union the query for last search column
+                        if ($searchIndexer === count($sColumns) - 1) {
+                            $search = $query;
+                        } else {
+                            $search = clone $query;
+                        }
+                        $searchIndexer++;
+                        if (count($parts) == 1) {
+                            $search->where($column, 'LIKE', '%' . $query_params['search'] . '%');
+                        } else {
+                            switch ($parts[0]) {
+                                case 'has':
+                                    $has = explode(',', $parts[1]);
+                                    if (count($has) == 2) {
+                                        $search->whereHas(
+                                            $has[0],
+                                            function (Builder $q) use ($query_params, $has) {
+                                                $q->where($has[1], 'LIKE', '%' . $query_params['search'] . '%');
+                                            }
+                                        );
+                                    }
+                                    break;
+                                case 'has_exact':
+                                    $has = explode(',', $parts[1]);
+                                    if (count($has) == 2) {
+                                        $search->whereHas(
+                                            $has[0],
+                                            function (Builder $q) use ($query_params, $has) {
+                                                $q->where($has[1], $query_params['search']);
+                                            }
+                                        );
+                                    }
+                                    break;
+                                case 'equals':
+                                    $search->where($parts[1], '=', $query_params['search']);
+                                    break;
+                            }
+                        }
+                        if ($search !== $query) {
+                            $query->union($search);
+                        }
+                    }
+                }
+            }
+        }
+
         if (isset($query_params['sort'])) {
             foreach ($query_params['sort'] as $sort) {
                 if (isset($sort['column']) && isset($sort['direction'])) {
