@@ -4,6 +4,7 @@ namespace Larapress\CRUD\Exceptions;
 
 use Exception;
 use Illuminate\Http\Request;
+use Mews\Captcha\Facades\Captcha;
 use Throwable;
 
 class AppException extends Exception
@@ -101,6 +102,11 @@ class AppException extends Exception
                 'code' => $this->getErrorCode(),
                 'message' => $this->getMessage(),
             ];
+
+            if ($this->error_code === self::ERR_INVALID_CREDENTIALS) {
+                $error['captcha'] = Captcha::create('default', true);
+            }
+
             return response()->json($error, 400);
         }
     }

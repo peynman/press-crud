@@ -5,16 +5,20 @@ namespace Larapress\CRUD\Exceptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Validator;
+use Mews\Captcha\Facades\Captcha;
 
 class ValidationException extends AppException
 {
     /** @var Validator */
     protected $validations;
 
-    public function __construct($validations)
+    protected $appendToResponse;
+
+    public function __construct($validations, $appendToResponse = null)
     {
         parent::__construct(AppException::ERR_VALIDATION);
         $this->validations = $validations;
+        $this->appendToResponse = $appendToResponse;
     }
 
     /**
@@ -43,6 +47,11 @@ class ValidationException extends AppException
                 'message' => $this->getMessage(),
                 'validations' => $this->getValidations()->getMessageBag()->toArray(),
             ];
+
+            if (!is_null($this->appendToResponse)) {
+                $error = array_merge($error, $this->appendToResponse);
+            }
+
             return response()->json($error, 400);
         }
     }
