@@ -422,6 +422,8 @@ class BaseCRUDService implements ICRUDService
             $onBeforeQuery($query);
         }
 
+        $availableFilters = $this->crudProvider->getFilterFields();
+
         if (isset($query_params['with'])) {
             foreach ($query_params['with'] as $relation) {
                 if (isset($relation['name']) && isset($relation['columns'])) {
@@ -444,9 +446,13 @@ class BaseCRUDService implements ICRUDService
                             $shouldInclude = $validations[$name]($user);
                         }
                         if ($shouldInclude) {
-                            $query->with([$name => function ($q) use ($relation_columns) {
+                            $query->with([$name => function ($q) use ($relation_columns, $name, $query_params, $availableFilters) {
                                 if (count($relation_columns) > 0 && $relation_columns[0] !== "*") {
                                     $q->select($relation_columns);
+                                }
+
+                                    if (isset($availableFilters['relations'][$name])) {
+                                    self::addFiltersToQuery($q, $availableFilters['relations'][$name], $query_params);
                                 }
                             }]);
                         }
@@ -457,10 +463,120 @@ class BaseCRUDService implements ICRUDService
             }
         }
 
+        $hasFilters = self::addFiltersToQuery($query, $availableFilters, $query_params);
+        if (!$hasFilters) {
+            self::addSearchToQuery($query, $this->crudProvider->getSearchableColumns(), $query_params);
+        }
+
+        if (isset($query_params['sort'])) {
+            foreach ($query_params['sort'] as $sort) {
+                if (isset($sort['column']) && isset($sort['direction'])) {
+                    if (in_array($sort['column'], $this->crudProvider->getValidSortColumns())) {
+                        $order = $sort['direction'] === 'asc' ? 'ASC' : 'DESC';
+                        $query->orderBy($sort['column'], $order);
+                    } else {
+                        throw new AppException(AppException::ERR_INVALID_QUERY);
+                    }
+                }
+            }
+        }
+
+        $cq = clone $query;
+        // get total items count for pagination if query is not a search
+        if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
+            $total = $cq->count();
+        } else {
+            $total = -1;
+        }
+        // no more pagination by laravel eloquent
+        if (isset($query_params['page'])) {
+            $paginate_from = intval($query_params['page']) - 1;
+            // use pagination if we are not searching
+            if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
+                $limit = isset($query_params['limit']) ? $query_params['limit'] : 10;
+                if ($total > 100) {
+                    $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
+                    if (!is_null($offset)) {
+                        $query->where('id', '<=', $offset->id);
+                    }
+                    $query->take($limit);
+                } else {
+                    $query->skip($paginate_from * $limit)->take($limit);
+                }
+            }
+        }
+
+        return [$query, $total];
+    }
+
+    public static function addSearchToQuery($query, $sColumns, $query_params) {
+        if (isset($query_params['search']) && strlen($query_params['search']) >= 2) {
+            if (Str::startsWith($query_params['search'], '#')) {
+                $query->where('id', substr($query_params['search'], 1));
+            } else {
+                $searchIndexer = 0;
+                if (count($sColumns) > 0) {
+                    foreach ($sColumns as $column) {
+                        $parts = explode(':', $column);
+                        // dont clone and union the query for last search column
+                        if ($searchIndexer === count($sColumns) - 1) {
+                            $search = $query;
+                        } else {
+                            $search = clone $query;
+                        }
+                        $searchIndexer++;
+                        if (count($parts) == 1) {
+                            $search->where($column, 'LIKE', '%' . $query_params['search'] . '%');
+                        } else {
+                            switch ($parts[0]) {
+                                case 'has':
+                                    $has = explode(',', $parts[1]);
+                                    if (count($has) == 2) {
+                                        $search->whereHas(
+                                            $has[0],
+                                            function (Builder $q) use ($query_params, $has) {
+                                                $q->where($has[1], 'LIKE', '%' . $query_params['search'] . '%');
+                                            }
+                                        );
+                                    }
+                                    break;
+                                case 'has_exact':
+                                    $has = explode(',', $parts[1]);
+                                    if (count($has) == 2) {
+                                        $search->whereHas(
+                                            $has[0],
+                                            function (Builder $q) use ($query_params, $has) {
+                                                $q->where($has[1], $query_params['search']);
+                                            }
+                                        );
+                                    }
+                                    break;
+                                case 'equals':
+                                    $search->where($parts[1], '=', $query_params['search']);
+                                    break;
+                            }
+                        }
+                        if ($search !== $query) {
+                            $query->union($search);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param [type] $query
+     * @param [type] $availableFilters
+     * @param [type] $query_params
+     * @return boolean
+     */
+    public static function addFiltersToQuery($query, $availableFilters, $query_params) {
         $hasFilters = false;
         if (isset($query_params['filters'])) {
             $filters = $query_params['filters'];
-            $availableFilters = $this->crudProvider->getFilterFields();
             foreach ($availableFilters as $field => $options) {
                 if (isset($filters[$field]) && !is_null($filters[$field]) && (!is_array($filters[$field]) || count(array_keys($filters[$field])) > 0)) {
                     $hasFilters = true;
@@ -549,105 +665,18 @@ class BaseCRUDService implements ICRUDService
                                 $query->where($parts[1], $parts[0], $filters[$field]);
                             }
                             break;
-                    }
-                }
-            }
-        }
-
-        if (isset($query_params['search']) && strlen($query_params['search']) >= 2 && !$hasFilters) {
-            if (Str::startsWith($query_params['search'], '#')) {
-                $query->where('id', substr($query_params['search'], 1));
-            } else {
-                $sColumns = $this->crudProvider->getSearchableColumns();
-                $searchIndexer = 0;
-                if (count($sColumns) > 0) {
-                    foreach ($sColumns as $column) {
-                        $parts = explode(':', $column);
-                        // dont clone and union the query for last search column
-                        if ($searchIndexer === count($sColumns) - 1) {
-                            $search = $query;
-                        } else {
-                            $search = clone $query;
+                        case 'not-null':
+                            $query->whereNotNull($parts[1]);
+                            break;
+                        case 'null':
+                            $query->whereIsNull($parts[1]);
+                            break;
                         }
-                        $searchIndexer++;
-                        if (count($parts) == 1) {
-                            $search->where($column, 'LIKE', '%' . $query_params['search'] . '%');
-                        } else {
-                            switch ($parts[0]) {
-                                case 'has':
-                                    $has = explode(',', $parts[1]);
-                                    if (count($has) == 2) {
-                                        $search->whereHas(
-                                            $has[0],
-                                            function (Builder $q) use ($query_params, $has) {
-                                                $q->where($has[1], 'LIKE', '%' . $query_params['search'] . '%');
-                                            }
-                                        );
-                                    }
-                                    break;
-                                case 'has_exact':
-                                    $has = explode(',', $parts[1]);
-                                    if (count($has) == 2) {
-                                        $search->whereHas(
-                                            $has[0],
-                                            function (Builder $q) use ($query_params, $has) {
-                                                $q->where($has[1], $query_params['search']);
-                                            }
-                                        );
-                                    }
-                                    break;
-                                case 'equals':
-                                    $search->where($parts[1], '=', $query_params['search']);
-                                    break;
-                            }
-                        }
-                        if ($search !== $query) {
-                            $query->union($search);
-                        }
-                    }
                 }
             }
         }
 
-        if (isset($query_params['sort'])) {
-            foreach ($query_params['sort'] as $sort) {
-                if (isset($sort['column']) && isset($sort['direction'])) {
-                    if (in_array($sort['column'], $this->crudProvider->getValidSortColumns())) {
-                        $order = $sort['direction'] === 'asc' ? 'ASC' : 'DESC';
-                        $query->orderBy($sort['column'], $order);
-                    } else {
-                        throw new AppException(AppException::ERR_INVALID_QUERY);
-                    }
-                }
-            }
-        }
-
-        $cq = clone $query;
-        // get total items count for pagination if query is not a search
-        if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
-            $total = $cq->count();
-        } else {
-            $total = -1;
-        }
-        // no more pagination by laravel eloquent
-        if (isset($query_params['page'])) {
-            $paginate_from = intval($query_params['page']) - 1;
-            // use pagination if we are not searching
-            if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
-                $limit = isset($query_params['limit']) ? $query_params['limit'] : 10;
-                if ($total > 100) {
-                    $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
-                    if (!is_null($offset)) {
-                        $query->where('id', '<=', $offset->id);
-                    }
-                    $query->take($limit);
-                } else {
-                    $query->skip($paginate_from * $limit)->take($limit);
-                }
-            }
-        }
-
-        return [$query, $total];
+        return $hasFilters;
     }
 
     /**
