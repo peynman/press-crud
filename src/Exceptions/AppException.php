@@ -50,6 +50,7 @@ class AppException extends Exception
     const ERR_NOT_ENOUGHT_AMOUNT_IN_CART = 10041;
     const ERR_NOT_GIFT_EXPIRED = 10042;
     const ERR_USER_HAS_NO_DOMAIN = 10043;
+    const ERR_GIFT_LOCKED_TO_SUPPORT = 10044;
 
     private $error_code;
 

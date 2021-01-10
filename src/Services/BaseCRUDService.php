@@ -10,14 +10,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\Exceptions\ValidationException;
-use Larapress\CRUD\Events as CRUDEvent;
 use Larapress\CRUD\Events\CRUDCreated;
 use Larapress\CRUD\Events\CRUDDeleted;
 use Larapress\CRUD\Events\CRUDUpdated;
@@ -471,9 +469,15 @@ class BaseCRUDService implements ICRUDService
         if (isset($query_params['sort'])) {
             foreach ($query_params['sort'] as $sort) {
                 if (isset($sort['column']) && isset($sort['direction'])) {
-                    if (in_array($sort['column'], $this->crudProvider->getValidSortColumns())) {
-                        $order = $sort['direction'] === 'asc' ? 'ASC' : 'DESC';
-                        $query->orderBy($sort['column'], $order);
+                    $validSorts = $this->crudProvider->getValidSortColumns();
+                    $validSortNames = Helpers::isAssocArray($validSorts) ? array_keys($validSorts) : array_values($validSorts);
+                    if (in_array($sort['column'], $validSortNames)) {
+                        $dir = $sort['direction'] === 'asc' ? 'ASC' : 'DESC';
+                        if (isset($validSorts[$sort['column']]) && is_callable($validSorts[$sort['column']])) {
+                            $validSorts[$sort['column']]($query, $dir);
+                        } else {
+                            $query->orderBy($sort['column'], $dir);
+                        }
                     } else {
                         throw new AppException(AppException::ERR_INVALID_QUERY);
                     }
