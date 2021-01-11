@@ -461,9 +461,10 @@ class BaseCRUDService implements ICRUDService
             }
         }
 
-        $hasFilters = self::addFiltersToQuery($query, $availableFilters, $query_params);
-        if (!$hasFilters) {
+        if (isset($query_params['search']) && strlen($query_params['search']) >= 2) {
             self::addSearchToQuery($query, $this->crudProvider->getSearchableColumns(), $query_params);
+        } else {
+            self::addFiltersToQuery($query, $availableFilters, $query_params);
         }
 
         if (isset($query_params['sort'])) {
@@ -519,6 +520,7 @@ class BaseCRUDService implements ICRUDService
                 $query->where('id', substr($query_params['search'], 1));
             } else {
                 $searchIndexer = 0;
+                ini_set('memory_limit', '256M');
                 if (count($sColumns) > 0) {
                     foreach ($sColumns as $column) {
                         $parts = explode(':', $column);
