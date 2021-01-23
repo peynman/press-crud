@@ -47,6 +47,17 @@ interface ICRUDService
      */
     public function buildQueryForRequest(Request $request, $onBeforeQuery = null);
 
+
+    /**
+     * Undocumented function
+     *
+     * @param Builder $query
+     * @param array $availableFilters
+     * @param array $query_params
+     * @return boolean
+     */
+    public function addFiltersToQuery($query, $availableFilters, $query_params);
+
     /**
      * Store a newly created resource in storage.
      *

@@ -73,7 +73,7 @@ class BaseCRUDService implements ICRUDService
      */
     public function query(Request $request)
     {
-        [$query, $total] = $this->buildQueryForRequest($request);
+        [$query, $total, $summerized] = $this->buildQueryForRequest($request);
         $models = $query->get();
         if ($total === -1) {
             $total = $models->count();
@@ -89,6 +89,7 @@ class BaseCRUDService implements ICRUDService
         }
 
         return [
+            'summerized' => $summerized,
             'data' => $models,
             'total' => $total,
             'from' => ($request->get('page', 1) - 1) * $request->get('limit', 10),
@@ -448,9 +449,8 @@ class BaseCRUDService implements ICRUDService
                                 if (count($relation_columns) > 0 && $relation_columns[0] !== "*") {
                                     $q->select($relation_columns);
                                 }
-
-                                    if (isset($availableFilters['relations'][$name])) {
-                                    self::addFiltersToQuery($q, $availableFilters['relations'][$name], $query_params);
+                                if (isset($availableFilters['relations'][$name])) {
+                                    $this->addFiltersToQuery($q, $availableFilters['relations'][$name], $query_params);
                                 }
                             }]);
                         }
@@ -464,7 +464,7 @@ class BaseCRUDService implements ICRUDService
         if (isset($query_params['search']) && strlen($query_params['search']) >= 2) {
             self::addSearchToQuery($query, $this->crudProvider->getSearchableColumns(), $query_params);
         } else {
-            self::addFiltersToQuery($query, $availableFilters, $query_params);
+            $this->addFiltersToQuery($query, $availableFilters, $query_params);
         }
 
         if (isset($query_params['sort'])) {
@@ -493,25 +493,49 @@ class BaseCRUDService implements ICRUDService
         } else {
             $total = -1;
         }
-        // no more pagination by laravel eloquent
+
+        $paginate_from = 0;
         if (isset($query_params['page'])) {
             $paginate_from = intval($query_params['page']) - 1;
-            // use pagination if we are not searching
-            if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
-                $limit = isset($query_params['limit']) ? $query_params['limit'] : 10;
-                if ($total > 100) {
-                    $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
-                    if (!is_null($offset)) {
-                        $query->where('id', '<=', $offset->id);
-                    }
-                    $query->take($limit);
+        }
+
+        // calculate summerized columns only for first page query
+        $summerized_column_values = [];
+        $summerize_columns = [];
+        if ($paginate_from === 0) {
+            if (isset($query_params['summerize'])) {
+                if (!is_array($query_params['summerize'])) {
+                    $summerize_columns = [$query_params['summerize']];
                 } else {
-                    $query->skip($paginate_from * $limit)->take($limit);
+                    $summerize_columns = $query_params['summerize'];
+                }
+            }
+            $validSummerize = $this->crudProvider->getSummerizableColumns();
+            $validSummNames = array_keys($validSummerize);
+            foreach ($summerize_columns as $summColName) {
+                if (in_array($summColName, $validSummNames)) {
+                    if (is_callable($validSummerize[$summColName])) {
+                        $summerized_column_values[$summColName] = $validSummerize[$summColName]($query, $query_params);
+                    }
                 }
             }
         }
 
-        return [$query, $total];
+        // use pagination if we are not searching
+        if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
+            $limit = isset($query_params['limit']) ? $query_params['limit'] : 10;
+            if ($total > 100) {
+                $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
+                if (!is_null($offset)) {
+                    $query->where('id', '<=', $offset->id);
+                }
+                $query->take($limit);
+            } else {
+                $query->skip($paginate_from * $limit)->take($limit);
+            }
+        }
+
+        return [$query, $total, $summerized_column_values];
     }
 
     public static function addSearchToQuery($query, $sColumns, $query_params) {
@@ -574,12 +598,12 @@ class BaseCRUDService implements ICRUDService
     /**
      * Undocumented function
      *
-     * @param [type] $query
-     * @param [type] $availableFilters
-     * @param [type] $query_params
+     * @param Builder $query
+     * @param array $availableFilters
+     * @param array $query_params
      * @return boolean
      */
-    public static function addFiltersToQuery($query, $availableFilters, $query_params) {
+    public function addFiltersToQuery($query, $availableFilters, $query_params) {
         $hasFilters = false;
         if (isset($query_params['filters'])) {
             $filters = $query_params['filters'];
@@ -660,7 +684,7 @@ class BaseCRUDService implements ICRUDService
                             break;
                         case 'has-count':
                             if (is_numeric($filters[$field])) {
-                                $query->withCount($parts[1])->where($parts[1].'_count', $parts[2], $filters[$field]);
+                                $query->withCount($parts[1])->having($parts[1].'_count', $parts[2], $filters[$field]);
                             }
                             break;
                         case '>':

@@ -100,6 +100,15 @@ trait BaseCRUDProvider
     }
 
     /**
+     * Undocumented function
+     *
+     * @return array
+     */
+    public function getSummerizableColumns() {
+        return isset($this->summerizeColumns) ? $this->summerizeColumns : [];
+    }
+
+    /**
      * @return array
      */
     public function getFilterFields()

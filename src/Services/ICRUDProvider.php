@@ -74,6 +74,11 @@ interface ICRUDProvider
     public function getExcludeIfNull();
 
     /**
+     * @return array
+     */
+    public function getSummerizableColumns();
+
+    /**
      * Undocumented function
      *
      * @param Request $request
