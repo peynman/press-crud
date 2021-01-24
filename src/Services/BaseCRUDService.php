@@ -496,7 +496,7 @@ class BaseCRUDService implements ICRUDService
 
         $paginate_from = 0;
         if (isset($query_params['page'])) {
-            $paginate_from = intval($query_params['page']) - 1;
+            $paginate_from = max(0, intval($query_params['page']) - 1);
         }
 
         // calculate summerized columns only for first page query
