@@ -68,7 +68,8 @@ class CRUDDeleted implements ShouldBroadcast
      *
      * @return IProfileUser
      */
-    public function getUser() {
+    public function getUser()
+    {
         if (is_null($this->userId)) {
             return null;
         }

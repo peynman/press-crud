@@ -34,7 +34,8 @@ trait BaseCRUDProvider
      * @param mixed $object
      * @return void
      */
-    public function getExportArray($object) {
+    public function getExportArray($object)
+    {
         return [];
     }
 
@@ -43,7 +44,8 @@ trait BaseCRUDProvider
      *
      * @return IReportSource
      */
-    public function getReportSources() {
+    public function getReportSources()
+    {
         return $this->getMergedValuesForPropertyFromExtendedProviders(
             'reportSources',
             'getReportSources'
@@ -110,7 +112,8 @@ trait BaseCRUDProvider
      *
      * @return array
      */
-    public function getSummerizableColumns() {
+    public function getSummerizableColumns()
+    {
         return $this->getMergedValuesForPropertyFromExtendedProviders(
             'summerizeColumns',
             'getSummerizableColumns'
@@ -369,7 +372,8 @@ trait BaseCRUDProvider
      * @param array $data
      * @param string $class
      */
-    protected function saveHasManyRelation($relation, $object, $data, $class) {
+    protected function saveHasManyRelation($relation, $object, $data, $class)
+    {
         $models = [];
         foreach ($data[$relation] as $datum) {
             $models[] = new $class($datum);
@@ -384,7 +388,8 @@ trait BaseCRUDProvider
      * @param Model $object
      * @param array $data
      */
-    protected function syncWithoutDetachingBelongsToManyRelation($relation, $object, $data) {
+    protected function syncWithoutDetachingBelongsToManyRelation($relation, $object, $data)
+    {
         if (!empty($data[$relation])) {
             $ids = [];
             foreach ($data[$relation] as $datum) {
@@ -403,7 +408,8 @@ trait BaseCRUDProvider
      * @param Model $object
      * @param array $data
      */
-    protected function syncBelongsToManyRelation($relation, $object, $data, $callback = null, $attributes = null) {
+    protected function syncBelongsToManyRelation($relation, $object, $data, $callback = null, $attributes = null)
+    {
         if (!empty($data[$relation])) {
             $ids = [];
             foreach ($data[$relation] as $datum) {
@@ -432,7 +438,8 @@ trait BaseCRUDProvider
 
 
     protected $extendedProviders = null;
-    protected function getExtendedProviders() {
+    protected function getExtendedProviders()
+    {
         if (! is_null($this->extendedProviders)) {
             return $this->extendedProviders;
         }
@@ -459,7 +466,8 @@ trait BaseCRUDProvider
      * @param [type] $callback
      * @return void
      */
-    protected function foreachExtendedProvider($callback) {
+    protected function foreachExtendedProvider($callback)
+    {
         /** @var ICRUDProvider[] */
         $extends = $this->getExtendedProviders();
         foreach ($extends as $extended) {
@@ -474,16 +482,16 @@ trait BaseCRUDProvider
      * @param string $extendedFunctionName
      * @return array
      */
-    protected function getMergedValuesForPropertyFromExtendedProviders($internalArrayName, $extendedFunctionName, $args = []) {
+    protected function getMergedValuesForPropertyFromExtendedProviders($internalArrayName, $extendedFunctionName, $args = [])
+    {
         if (property_exists($this, $internalArrayName)) {
             $merged = $this->{$internalArrayName};
         } else {
             $merged = [];
         }
-        $this->foreachExtendedProvider(function(ICRUDProvider $provider) use(&$merged, $extendedFunctionName, $args) {
+        $this->foreachExtendedProvider(function (ICRUDProvider $provider) use (&$merged, $extendedFunctionName, $args) {
             $merged = array_merge($merged, call_user_func([$provider, $extendedFunctionName], ...$args));
         });
         return $merged;
     }
-
 }

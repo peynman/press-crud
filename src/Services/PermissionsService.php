@@ -17,7 +17,6 @@ class PermissionsService implements IPermissionsService
      */
     public function forEachRegisteredProviderClass($callback)
     {
-
         $meta_data_classes = config('larapress.crud.permissions');
         $process_class_names = function ($meta_data_classes, $iterate) use ($callback) {
             foreach ($meta_data_classes as $meta_data_class) {

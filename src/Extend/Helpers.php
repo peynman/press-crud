@@ -72,7 +72,8 @@ class Helpers
      * @param string $path
      * @return string
      */
-    public static function getPathWithoutExtension($path) {
+    public static function getPathWithoutExtension($path)
+    {
         return substr($path, 0, strrpos($path, '.'));
     }
 
@@ -313,7 +314,8 @@ class Helpers
      * @param int $ttl
      * @return mixed
      */
-    public static function getCachedValue($key, $callback, $tags, $ttl) {
+    public static function getCachedValue($key, $callback, $tags, $ttl)
+    {
         $result = Cache::tags($tags)->get($key, null);
         if (is_null($result)) {
             $result = $callback();
@@ -330,7 +332,8 @@ class Helpers
      * @param mixed $var
      * @return boolean
      */
-    public static function isAssocArray($var) {
-            return is_array($var) && array_diff_key($var,array_keys(array_keys($var)));
+    public static function isAssocArray($var)
+    {
+        return is_array($var) && array_diff_key($var, array_keys(array_keys($var)));
     }
 }

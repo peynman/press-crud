@@ -9,7 +9,8 @@ class TranslationHelper
      *
      * @return ILanguage|null
      */
-    public static function getLocaleLanguage($locale) {
+    public static function getLocaleLanguage($locale)
+    {
         $avLangs = config('larapress.crud.languages');
         /** @var ILanguage $lang */
         $lang = null;

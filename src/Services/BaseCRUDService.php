@@ -426,7 +426,7 @@ class BaseCRUDService implements ICRUDService
                     }
                     if (in_array($name, $validationNames)) {
                         if (is_string($relation_columns)) {
-                            $relation_columns = array_map(function($item){
+                            $relation_columns = array_map(function ($item) {
                                 return trim($item);
                             }, explode(',', $relation_columns));
                         }
@@ -528,7 +528,8 @@ class BaseCRUDService implements ICRUDService
         return [$query, $total, $summerized_column_values];
     }
 
-    public static function addSearchToQuery($query, $sColumns, $query_params) {
+    public static function addSearchToQuery($query, $sColumns, $query_params)
+    {
         if (isset($query_params['search']) && strlen($query_params['search']) >= 2) {
             if (Str::startsWith($query_params['search'], '#')) {
                 $query->where('id', substr($query_params['search'], 1));
@@ -593,7 +594,8 @@ class BaseCRUDService implements ICRUDService
      * @param array $query_params
      * @return boolean
      */
-    public function addFiltersToQuery($query, $availableFilters, $query_params) {
+    public function addFiltersToQuery($query, $availableFilters, $query_params)
+    {
         $hasFilters = false;
         if (isset($query_params['filters'])) {
             $filters = $query_params['filters'];
@@ -764,7 +766,7 @@ class BaseCRUDService implements ICRUDService
         foreach ($autoSyncRelations as $relation => $callback) {
             if (is_callable($callback)) {
                 $saveAfter = $saveAfter || self::syncRelation($relation, $callback, $object, $data);
-            } else if (isset($callback[$method]) && is_callable($callback[$method])) {
+            } elseif (isset($callback[$method]) && is_callable($callback[$method])) {
                 $saveAfter = $saveAfter || self::syncRelation($relation, $callback[$method], $object, $data);
             }
         }

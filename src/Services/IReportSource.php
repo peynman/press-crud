@@ -2,7 +2,8 @@
 
 namespace Larapress\CRUD\Services;
 
-interface IReportSource {
+interface IReportSource
+{
 
     /**
      * Undocumented function

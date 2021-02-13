@@ -60,7 +60,7 @@ class CRUDPermissionsCommands extends ActionCommandBase
         return function () {
             /** @var IPermissionsService */
             $service = app(IPermissionsService::class);
-            $service->forEachRegisteredProviderClass(function($meta_data_class) {
+            $service->forEachRegisteredProviderClass(function ($meta_data_class) {
                 /** @var IPermissionsMetadata $instance */
                 $instance = new $meta_data_class();
                 $all_verbs = $instance->getPermissionVerbs();

@@ -5,7 +5,8 @@ namespace Larapress\CRUD\Translation\Lang;
 use Larapress\CRUD\Translation\ILanguage;
 use NumberFormatter;
 
-class Roman implements ILanguage {
+class Roman implements ILanguage
+{
 
     /** @var NumberFormatter $decimal */
     protected $decimal;
@@ -21,18 +22,25 @@ class Roman implements ILanguage {
     /**
      * @return string
      */
-    function getName() { return "en"; }
+    public function getName()
+    {
+        return "en";
+    }
 
     /**
      * @return string
      */
-    function getTitle() { return 'English'; }
+    public function getTitle()
+    {
+        return 'English';
+    }
 
     /**
      * @param $number
      * @return string
      */
-    function formatDecimal($number) {
+    public function formatDecimal($number)
+    {
         return $this->decimal->format($number);
     }
 
@@ -40,7 +48,8 @@ class Roman implements ILanguage {
      * @param $number
      * @return string
      */
-    function formatInteger($number) {
+    public function formatInteger($number)
+    {
         return $this->integer->format($number);
     }
 
@@ -49,7 +58,8 @@ class Roman implements ILanguage {
      * @param $currencyTitle
      * @return string
      */
-    function formatCurrency($amount, $currencyTitle) {
+    public function formatCurrency($amount, $currencyTitle)
+    {
         return sprintf("%s %s", $this->formatDecimal($amount), $currencyTitle);
     }
 
@@ -58,7 +68,8 @@ class Roman implements ILanguage {
      * @param $format
      * @return string
      */
-    function formatDateTime($datetime, $format) {
+    public function formatDateTime($datetime, $format)
+    {
         return $datetime->format($format);
     }
 

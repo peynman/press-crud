@@ -58,7 +58,8 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      * @param Request $request
      * @return void
      */
-    public function getUpdateRules(Request $request) {
+    public function getUpdateRules(Request $request)
+    {
         /** @var ICRUDUser */
         $user = Auth::user();
 
@@ -130,11 +131,10 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         }
 
         // @todo: add cache reset for users with this role
-        $object->users()->chunk(100, function($users) {
+        $object->users()->chunk(100, function ($users) {
             foreach ($users as $user) {
                 $user->forgetPermissionsCache();
             }
         });
     }
-
 }

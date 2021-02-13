@@ -2,7 +2,8 @@
 
 namespace Larapress\CRUD\Services;
 
-interface IPermissionsService {
+interface IPermissionsService
+{
     /**
      * Undocumented function
      *

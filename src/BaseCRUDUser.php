@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Cache;
 use Larapress\CRUD\Extend\Helpers;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Models\Role;
-use Symfony\Component\Console\Helper\Helper;
 
 trait BaseCRUDUser
 {
@@ -94,7 +93,7 @@ trait BaseCRUDUser
     {
         return Helpers::getCachedValue(
             'larapress.users.'.$this->id.'.roles.highest',
-            function() {
+            function () {
                 return $this->roles()->orderBy('priority', 'DESC')->first();
             },
             ['user.permissions:'.$this->id],
@@ -137,7 +136,8 @@ trait BaseCRUDUser
     /**
      * @return array
      */
-    public function getPermissions() {
+    public function getPermissions()
+    {
         if (!is_null($this->cachedRoles)) {
             return $this->cachedPermissions;
         }

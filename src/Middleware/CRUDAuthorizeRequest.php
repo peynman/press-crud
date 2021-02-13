@@ -52,7 +52,8 @@ class CRUDAuthorizeRequest
      * @param $verb
      * @return array|null
      */
-    public static function getCRUDVerbPermissions($name, $verb) {
+    public static function getCRUDVerbPermissions($name, $verb)
+    {
         $required_permissions = [];
 
         switch ($verb) {
