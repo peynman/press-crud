@@ -3,7 +3,6 @@
 namespace Larapress\CRUD\Translation;
 
 use Illuminate\Translation\TranslationServiceProvider;
-use Illuminate\Translation\Translator;
 
 class PackageTranslationServiceProvider extends TranslationServiceProvider
 {

@@ -9,7 +9,7 @@ use Larapress\CRUD\Services\BaseCRUDProvider;
 use Larapress\CRUD\Services\ICRUDProvider;
 use Larapress\CRUD\Services\IPermissionsMetadata;
 use Larapress\CRUD\Models\Role;
-use Larapress\CRUD\Repository\IRoleRepository;
+use Larapress\CRUD\ICRUDUser;
 
 class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
 {
@@ -35,14 +35,12 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         'permissions.*.id' => 'nullable|exists:permissions,id',
         'priority' => 'required|numeric',
     ];
-    public $autoSyncRelations = [
-        'permissions',
-    ];
     public $validSortColumns = [
         'id',
         'name',
         'title',
         'created_at',
+        'updated_at',
     ];
     public $validRelations = [
         'permissions',
@@ -50,26 +48,10 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
     public $defaultShowRelations = [
         'permissions',
     ];
-    public $validFilters = [];
-    public $excludeIfNull = [
-    ];
     public $searchColumns = [
         'name',
         'title',
     ];
-    public $filterDefaults = [
-
-    ];
-    public $filterFields = [
-
-    ];
-
-    /** @var IRoleRepository */
-    protected $repo;
-
-    /** @var ICRUDUser */
-    protected $user;
-
     /**
      * Exclude current id in name unique request
      *
@@ -77,11 +59,11 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      * @return void
      */
     public function getUpdateRules(Request $request) {
-        $this->repo = app(IRoleRepository::class);
-        $this->user = Auth::user();
+        /** @var ICRUDUser */
+        $user = Auth::user();
 
         $this->updateValidations['name'] .= ',' . $request->route('id');
-        $this->updateValidations['priority'] .= '|lte:' . $this->repo->getUserHighestRole($this->user)->priority;
+        $this->updateValidations['priority'] .= '|lte:' . $user->getUserHighestRole()->priority;
         return $this->updateValidations;
     }
 
@@ -93,11 +75,11 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      */
     public function onBeforeQuery($query)
     {
-        $this->repo = app(IRoleRepository::class);
-        $this->user = Auth::user();
+        /** @var ICRUDUser */
+        $user = Auth::user();
 
         if (! $this->user->hasRole(config('larapress.profiles.security.roles.super-role'))) {
-            $query->where('priority', '>=', $this->repo->getUserHighestRole($this->user)->priority);
+            $query->where('priority', '>=', $user->getUserHighestRole()->priority);
         }
 
         return $query;
@@ -110,10 +92,11 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      */
     public function onBeforeAccess($object)
     {
-        $this->repo = app(IRoleRepository::class);
-        $this->user = Auth::user();
+        /** @var ICRUDUser */
+        $user = Auth::user();
+
         if (! $this->user->hasRole(config('larapress.profiles.security.roles.super-role'))) {
-            return $this->repo->getUserHighestRole($this->user)->priority >= $object->priority;
+            return $user->getUserHighestRole()->priority >= $object->priority;
         }
 
         return true;
@@ -128,7 +111,6 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      */
     public function onAfterCreate($object, $input_data)
     {
-        $this->user = Auth::user();
         if (!empty($input_data['permissions'])) {
             $this->syncBelongsToManyRelation('permissions', $object, $input_data['permissions']);
         }
@@ -143,7 +125,6 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      */
     public function onAfterUpdate($object, $input_data)
     {
-        $this->user = Auth::user();
         if (!empty($input_data['permissions'])) {
             $this->syncBelongsToManyRelation('permissions', $object, $input_data);
         }

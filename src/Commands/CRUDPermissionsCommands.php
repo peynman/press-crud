@@ -5,13 +5,9 @@ namespace Larapress\CRUD\Commands;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
 use Larapress\CRUD\Services\IPermissionsService;
-use Larapress\CRUD\Commands\ActionCommandBase;
 use Larapress\CRUD\Services\IPermissionsMetadata;
-use Larapress\CRUD\Extend\Helpers;
-use Larapress\CRUD\ICRUDUser;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Models\Role;
-use Larapress\Pages\Repository\IPageRepository;
 
 class CRUDPermissionsCommands extends ActionCommandBase
 {
@@ -21,7 +17,7 @@ class CRUDPermissionsCommands extends ActionCommandBase
      *
      * @var string
      */
-    protected $signature = 'larapress:crud {--action=}';
+    protected $signature = 'larapress:crud {--action=} {--name=} {--password=}';
 
     /**
      * The console command description.
@@ -48,10 +44,12 @@ class CRUDPermissionsCommands extends ActionCommandBase
     {
         return function () {
             $form = [
-                'name' => null,
-                'password' => null,
+                'name' => $this->option('name', null),
+                'password' => $this->option('password', null),
             ];
-            $form = $this->fillForm($form);
+            if (is_null($form['name']) || is_null($form['password'])) {
+                $form = $this->fillForm($form);
+            }
             self::updateSuperUserWithData($form);
             $this->info('Account updated with super-role.');
         };

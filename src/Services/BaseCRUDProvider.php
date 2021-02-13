@@ -9,27 +9,15 @@ use Illuminate\Http\Request;
 trait BaseCRUDProvider
 {
     /**
-     * @return array
-     */
-    public function getTranslations()
-    {
-        return isset($this->translations) ? $this->translations : [];
-    }
-
-    /**
-     * @return array
-     */
-    public function getJSONFills()
-    {
-        return isset($this->jsons) ? $this->jsons : [];
-    }
-
-    /**
      * @return object::class
      */
     public function getModelClass()
     {
-        return $this->model;
+        if (isset($this->model)) {
+            return $this->model;
+        } else {
+            return isset($this->class_in_config) ? config($this->class_in_config) : [];
+        }
     }
 
     /**
@@ -56,7 +44,10 @@ trait BaseCRUDProvider
      * @return IReportSource
      */
     public function getReportSources() {
-        return isset($this->reportSources) ? $this->reportSources : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'reportSources',
+            'getReportSources'
+        );
     }
 
     /**
@@ -64,7 +55,10 @@ trait BaseCRUDProvider
      */
     public function getValidRelations()
     {
-        return isset($this->validRelations) ? $this->validRelations : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'validRelations',
+            'getValidRelations'
+        );
     }
 
     /**
@@ -72,7 +66,10 @@ trait BaseCRUDProvider
      */
     public function getValidSortColumns()
     {
-        return isset($this->validSortColumns) ? $this->validSortColumns : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'validSortColumns',
+            'getValidSortColumns'
+        );
     }
 
     /**
@@ -80,7 +77,10 @@ trait BaseCRUDProvider
      */
     public function getSearchableColumns()
     {
-        return isset($this->searchColumns) ? $this->searchColumns : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'searchColumns',
+            'getSearchableColumns'
+        );
     }
 
     /**
@@ -88,7 +88,10 @@ trait BaseCRUDProvider
      */
     public function getAutoSyncRelations()
     {
-        return isset($this->autoSyncRelations) ? $this->autoSyncRelations : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'autoSyncRelations',
+            'getAutoSyncRelations'
+        );
     }
 
     /**
@@ -96,7 +99,10 @@ trait BaseCRUDProvider
      */
     public function getAutoCountRelations()
     {
-        return isset($this->autoCountRelations) ? $this->autoCountRelations : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'autoCountRelations',
+            'getAutoCountRelations'
+        );
     }
 
     /**
@@ -105,7 +111,10 @@ trait BaseCRUDProvider
      * @return array
      */
     public function getSummerizableColumns() {
-        return isset($this->summerizeColumns) ? $this->summerizeColumns : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'summerizeColumns',
+            'getSummerizableColumns'
+        );
     }
 
     /**
@@ -113,7 +122,10 @@ trait BaseCRUDProvider
      */
     public function getFilterFields()
     {
-        return isset($this->filterFields) ? $this->filterFields : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'filterFields',
+            'getFilterFields'
+        );
     }
 
     /**
@@ -121,7 +133,10 @@ trait BaseCRUDProvider
      */
     public function getFilterDefaultValues()
     {
-        return isset($this->filterDefaults) ? $this->filterDefaults : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'filterDefaults',
+            'getFilterDefaultValues'
+        );
     }
 
     /**
@@ -129,7 +144,10 @@ trait BaseCRUDProvider
      */
     public function getDeleteCascades()
     {
-        return [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'deleteCascades',
+            'getDeleteCascades'
+        );
     }
 
     /**
@@ -137,7 +155,10 @@ trait BaseCRUDProvider
      */
     public function getEagerRelations()
     {
-        return isset($this->defaultShowRelations) ? $this->defaultShowRelations : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'defaultShowRelations',
+            'getEagerRelations'
+        );
     }
 
     /**
@@ -145,7 +166,10 @@ trait BaseCRUDProvider
      */
     public function getExcludeIfNull()
     {
-        return isset($this->excludeIfNull) ? $this->excludeIfNull : [];
+        return $this->getMergedValuesForPropertyFromExtendedProviders(
+            'excludeIfNull',
+            'getExcludeIfNull'
+        );
     }
 
     /**
@@ -405,4 +429,61 @@ trait BaseCRUDProvider
             $builder->sync($ids);
         }
     }
+
+
+    protected $extendedProviders = null;
+    protected function getExtendedProviders() {
+        if (! is_null($this->extendedProviders)) {
+            return $this->extendedProviders;
+        }
+
+        $extended = [];
+        if (isset($this->extend_in_config)) {
+            $extends = config($this->extend_in_config);
+            if ($extends && count($extends) > 0) {
+                foreach ($extends as $extendedClass) {
+                    if (is_string($extendedClass)) {
+                        $extended[] = new $extendedClass();
+                    }
+                }
+            }
+        }
+
+        $this->extendedProviders = $extended;
+        return $extended;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param [type] $callback
+     * @return void
+     */
+    protected function foreachExtendedProvider($callback) {
+        /** @var ICRUDProvider[] */
+        $extends = $this->getExtendedProviders();
+        foreach ($extends as $extended) {
+            $callback($extended);
+        }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string $internalArrayName
+     * @param string $extendedFunctionName
+     * @return array
+     */
+    protected function getMergedValuesForPropertyFromExtendedProviders($internalArrayName, $extendedFunctionName, $args = []) {
+        if (property_exists($this, $internalArrayName)) {
+            $merged = $this->{$internalArrayName};
+        } else {
+            $merged = [];
+        }
+        $this->foreachExtendedProvider(function(ICRUDProvider $provider) use(&$merged, $extendedFunctionName, $args) {
+            $merged = array_merge($merged, call_user_func([$provider, $extendedFunctionName], ...$args));
+        });
+        return $merged;
+    }
+
 }

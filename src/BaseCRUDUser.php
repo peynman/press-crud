@@ -2,24 +2,20 @@
 
 namespace Larapress\CRUD;
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Larapress\CRUD\Extend\Helpers;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Models\Role;
+use Symfony\Component\Console\Helper\Helper;
 
 trait BaseCRUDUser
 {
     /** @var array */
-    public $permissions = null;
-
-    /**
-     * Removes all cached permissions for this user.
-     */
-    public function forgetPermissionsCache()
-    {
-        Cache::tags(['user.permissions:'.$this->id])->flush();
-    }
+    public $cachedRoles = null;
+    /** @var array */
+    public $cachedPermissions = null;
+    /** @var Role */
+    public $cachedHighestRole = null;
 
     /**
      * Check if user has permission or not.
@@ -58,15 +54,6 @@ trait BaseCRUDUser
         return $this->checkRole($roles);
     }
 
-
-    /**
-     * @return array
-     */
-    public function getPermissions() {
-        $this->checkPermission(''); // make sure cache is up
-        return $this->permissions;
-    }
-
     /**
      * @param string|int|Permission $permission
      *
@@ -74,36 +61,22 @@ trait BaseCRUDUser
      */
     protected function checkPermission($permission)
     {
-        if (is_null($this->permissions)) {
-            $this->permissions = Helpers::getCachedValue(
-                "larapress.users.$this->id.permissions.fast",
-                function() {
-                    $perms = [];
-                    /** @var Role[] $roles */
-                    $roles = $this->roles()->with('permissions')->get();
-                    foreach ($roles as $role) {
-                        foreach ($role->permissions as $role_permission) {
-                            $perms[] = [$role_permission->id, $role_permission->name.'.'.$role_permission->verb];
-                        }
-                    }
-                    return $perms;
-                },
-                ['user.permissions:'.$this->id],
-                null
-            );
+        if (is_null($this->cachedRoles)) {
+            $this->getPermissions();
         }
+
         if (is_object($permission)) {
-            foreach ($this->permissions as $my_permission) {
+            foreach ($this->cachedPermissions as $my_permission) {
                 if ($my_permission[0] === $permission->id) {
                     return true;
                 }
             }
         } else {
-            $index_to_check = 1;
+            $index_to_check = 1; // permission name
             if (is_numeric($permission)) {
-                $index_to_check = 0;
+                $index_to_check = 0; // permission id
             }
-            foreach ($this->permissions as $my_permission) {
+            foreach ($this->cachedPermissions as $my_permission) {
                 if ($my_permission[$index_to_check] === $permission) {
                     return true;
                 }
@@ -113,6 +86,22 @@ trait BaseCRUDUser
         return false;
     }
 
+
+    /**
+     * @return \Larapress\CRUD\Models\Role
+     */
+    public function getUserHighestRole()
+    {
+        return Helpers::getCachedValue(
+            'larapress.users.'.$this->id.'.roles.highest',
+            function() {
+                return $this->roles()->orderBy('priority', 'DESC')->first();
+            },
+            ['user.permissions:'.$this->id],
+            null
+        );
+    }
+
     /**
      * @param string|int|Role $role
      *
@@ -120,17 +109,63 @@ trait BaseCRUDUser
      */
     protected function checkRole($role)
     {
-        foreach ($this->roles as $r) {
-            if ($role == $r->name || $role === $r->id) {
-                return true;
+        if (is_null($this->cachedRoles)) {
+            $this->getPermissions();
+        }
+
+        if (is_object($role)) {
+            foreach ($this->cachedRoles as $r) {
+                if ($role->id == $r[0]) {
+                    return true;
+                }
+            }
+        } else {
+            $index_to_check = 'name';
+            if (is_numeric($role)) {
+                $index_to_check = 'id';
+            }
+            foreach ($this->cachedRoles as $r) {
+                if ($role == $r[$index_to_check]) {
+                    return true;
+                }
             }
         }
 
         return false;
     }
 
-    public static function forgetAllPermissionsCache()
+    /**
+     * @return array
+     */
+    public function getPermissions() {
+        if (!is_null($this->cachedRoles)) {
+            return $this->cachedPermissions;
+        }
+
+        $this->cachedRoles = Helpers::getCachedValue(
+            'larapress.users.'.$this->id.'.roles.all',
+            function () {
+                return $this->roles()->with('permissions')->get()->toArray();
+            },
+            ['user.permissions:'.$this->id],
+            null
+        );
+
+        $this->cachedPermissions = [];
+        foreach ($this->cachedRoles as $role) {
+            foreach ($role['permissions'] as $permission) {
+                $this->cachedPermissions[] = [$permission['id'], $permission['name'].'.'.$permission['verb']];
+            }
+        }
+
+        return $this->cachedPermissions;
+    }
+
+    /**
+     * Removes all cached permissions for this user.
+     */
+    public function forgetPermissionsCache()
     {
-        Cache::tags(['permissions'])->flush();
+        Cache::tags(['user.permissions:'.$this->id])->flush();
     }
 }

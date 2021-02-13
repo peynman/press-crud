@@ -50,7 +50,7 @@ abstract class BaseCRUDController extends Controller
     }
 
     /**
-     * Search the resource.
+     * Search/Query resource table.
      *
      * @param Request $request
      *

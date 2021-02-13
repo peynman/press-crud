@@ -17,13 +17,17 @@ class BaseCRUDBroadcast implements IBaseCRUDBroadcast
      */
     public function authenticateRequest(Request $request)
     {
+        /** @var ICRUDUser */
         $user = Auth::user();
         if ($request->get('channel_name', null) === 'presence-website' || !is_null($user)) {
-            if (Auth::check()) {
+            if (!is_null($user)) {
+                $hRole = $user->getUserHighestRole();
+
                 return [
                     'channel_data' => [
                         'user_id' => $user->id,
                         'user_info' => $user->name,
+                        'user_role' => $hRole->name,
                     ],
                 ];
             }

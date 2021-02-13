@@ -2,7 +2,6 @@
 
 namespace Larapress\CRUD\Validations;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class DateTimeZonedValidator

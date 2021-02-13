@@ -188,10 +188,11 @@ class BaseCRUDService implements ICRUDService
     }
 
     /**
-     * Display the specified resource.
+     * Display a specified resource by its id.
+     * load default relations, check object access rights for authenticated user.
      *
      * @param Request $request
-     * @param int     $id
+     * @param int|string     $id
      *
      * @return Model
      * @throws AppException
@@ -210,17 +211,6 @@ class BaseCRUDService implements ICRUDService
 
         if (!$this->crudProvider->onBeforeAccess($model)) {
             throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
-        }
-
-        $json_data = $this->crudProvider->getJSONFills();
-        foreach ($json_data as $prefix => $items) {
-            if (isset($model->$prefix)) {
-                foreach ($items as $item) {
-                    if (!empty($model->$prefix[$item])) {
-                        $model[$prefix . '_' . $item] = $model->$prefix[$item];
-                    }
-                }
-            }
         }
 
         $model = $this->crudProvider->onShowModel($model);
@@ -525,7 +515,7 @@ class BaseCRUDService implements ICRUDService
         if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
             $limit = isset($query_params['limit']) ? $query_params['limit'] : 10;
             if ($total > 100) {
-                $offset = $cq->select('id')->skip($paginate_from * $limit)->first();
+                $offset = $cq->select(['id'])->skip($paginate_from * $limit)->first();
                 if (!is_null($offset)) {
                     $query->where('id', '<=', $offset->id);
                 }
@@ -611,7 +601,12 @@ class BaseCRUDService implements ICRUDService
                 if (isset($filters[$field]) && !is_null($filters[$field]) && (!is_array($filters[$field]) || count(array_keys($filters[$field])) > 0)) {
                     $hasFilters = true;
                     if (is_callable($options)) {
-                        $options($query, $filters[$field]);
+                        if (!empty($filters[$field])) {
+                            $options($query, $filters[$field]);
+                        }
+                        continue;
+                    }
+                    if ($field === 'flags' && $filters[$field] == 0) {
                         continue;
                     }
 

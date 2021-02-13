@@ -2,11 +2,9 @@
 
 namespace Larapress\CRUD\Extend;
 
-use Carbon\Carbon;
 use Carbon\CarbonInterval;
 use DateTimeZone;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 class Helpers
 {

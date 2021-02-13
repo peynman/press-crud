@@ -1,13 +1,13 @@
 {
   "name": "peynman/larapress-crud",
-  "description": "This is the description of the package.",
+  "description": "API scaffolding with searching and filtering interfaces.",
   "type": "library",
   "license": "MIT",
   "minimum-stability": "dev",
   "authors": [
     {
       "name": "Peyman Abdi",
-      "email": "peyman.abdi.work@gmail.com"
+      "email": "larapress@peynman.ir"
     }
   ],
   "autoload": {

@@ -5,7 +5,6 @@ namespace Larapress\CRUD\Exceptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Validator;
-use Mews\Captcha\Facades\Captcha;
 
 class ValidationException extends AppException
 {

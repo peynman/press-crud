@@ -95,16 +95,6 @@ interface ICRUDProvider
     /**
      * @return array
      */
-    public function getTranslations();
-
-    /**
-     * @return array
-     */
-    public function getJSONFills();
-
-    /**
-     * @return array
-     */
     public function getDeleteCascades();
 
     /**
