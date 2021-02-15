@@ -10,6 +10,14 @@ Larapress CRUD is a Create/Read/Update/Delete resource management api, with:
 * Easy name.verb based authorization
 * Simple yet overridable pipelines
 * Reusable code principles in mind
+* Role-based access control
 
 ## Usage
 [See usage](./USAGE.md)
+
+## Development/Contribution Guid
+* create a new laravel project
+* add this project as a submodule at path packages/larapress-crud
+* use phpunit, phpcs
+    * ```vendor/bin/phpunit -c packages/larapress-reports/phpunit.xml```
+    * ```vendor/bin/phpcs --standard=packages/larapress-crud/phpcs.xml packages/larapress-crud/```

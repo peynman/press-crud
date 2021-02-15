@@ -2,7 +2,6 @@
 
 namespace Larapress\CRUD\Tests;
 
-use Illuminate\Auth\SessionGuard;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\TestCase;
