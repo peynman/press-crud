@@ -1,5 +1,5 @@
 {
-  "name": "peynman/larapress-crud",
+  "name": "peynman/press-crud",
   "description": "API scaffolding with searching and filtering interfaces.",
   "type": "library",
   "license": "MIT",

@@ -17,7 +17,7 @@ class CRUDPermissionsCommands extends ActionCommandBase
      *
      * @var string
      */
-    protected $signature = 'larapress:crud {--action=} {--name=} {--password=}';
+    protected $signature = 'lp:crud {--action=} {--name=} {--password=}';
 
     /**
      * The console command description.

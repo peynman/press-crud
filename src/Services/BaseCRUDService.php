@@ -698,7 +698,7 @@ class BaseCRUDService implements ICRUDService
                         case 'null':
                             $query->whereIsNull($parts[1]);
                             break;
-                        }
+                    }
                 }
             }
         }

@@ -29,12 +29,6 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         'permissions.*.id' => 'nullable|exists:permissions,id',
         'priority' => 'required|numeric',
     ];
-    public $updateValidations = [
-        'name' => 'required|string|max:190|regex:/(^[A-Za-z0-9-_.]+$)+/|unique:roles,name',
-        'title' => 'required|string',
-        'permissions.*.id' => 'nullable|exists:permissions,id',
-        'priority' => 'required|numeric',
-    ];
     public $validSortColumns = [
         'id',
         'name',
@@ -63,9 +57,16 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         /** @var ICRUDUser */
         $user = Auth::user();
 
-        $this->updateValidations['name'] .= ',' . $request->route('id');
-        $this->updateValidations['priority'] .= '|lte:' . $user->getUserHighestRole()->priority;
-        return $this->updateValidations;
+        $updateValidations = [
+            'name' => 'required|string|max:190|regex:/(^[A-Za-z0-9-_.]+$)+/|unique:roles,name',
+            'title' => 'required|string',
+            'permissions.*.id' => 'nullable|exists:permissions,id',
+            'priority' => 'required|numeric',
+        ];
+
+        $updateValidations['name'] .= ',' . $request->route('id');
+        $updateValidations['priority'] .= '|lte:' . $user->getUserHighestRole()->priority;
+        return $updateValidations;
     }
 
 
@@ -96,7 +97,7 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         /** @var ICRUDUser */
         $user = Auth::user();
 
-        if (! $this->user->hasRole(config('larapress.profiles.security.roles.super-role'))) {
+        if (! $user->hasRole(config('larapress.profiles.security.roles.super-role'))) {
             return $user->getUserHighestRole()->priority >= $object->priority;
         }
 

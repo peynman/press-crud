@@ -53,5 +53,7 @@ class ValidationException extends AppException
 
             return response()->json($error, 400);
         }
+
+        return response($this->getMessage(), 400);
     }
 }

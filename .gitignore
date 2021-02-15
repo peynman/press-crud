@@ -4,6 +4,7 @@
 /storage/*.key
 /vendor
 /.idea
+.phpcs
 .DS_Store
 .env
 .env.backup

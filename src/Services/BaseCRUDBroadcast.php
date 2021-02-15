@@ -48,8 +48,7 @@ class BaseCRUDBroadcast implements IBaseCRUDBroadcast
      */
     public function authorizeForCRUDChannel(ICRUDUser $user, $name, $verb)
     {
-        if (
-            !is_null($user) &&
+        if (!is_null($user) &&
             $user->hasRole(config('larapress.profiles.security.roles.super-role')) &&
             $user->hasPermission([$name . '.' . $verb])
         ) {
@@ -70,8 +69,7 @@ class BaseCRUDBroadcast implements IBaseCRUDBroadcast
      */
     public function authorizeForCRUDSupportChannel(ICRUDUser $user, $name, $verb, $id)
     {
-        if (
-            !is_null($user) &&
+        if (!is_null($user) &&
             $user->hasRole(config('larapress.profiles.security.roles.affiliate')) &&
             $user->hasPermission([$name . '.' . $verb]) &&
             $user->id == $id
