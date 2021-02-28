@@ -17,11 +17,11 @@ return [
      */
     'permissions' => [
         \Larapress\CRUD\CRUD\RoleCRUDProvider::class,
-        'larapress.reports.permissions',
-        'larapress.notifications.permissions',
-        'larapress.profiles.permissions',
-        'larapress.ecommerce.permissions',
-        'larapress.pages.permissions',
+        'include::larapress.reports.permissions',
+        'include::larapress.notifications.permissions',
+        'include::larapress.profiles.permissions',
+        'include::larapress.ecommerce.permissions',
+        'include::larapress.pages.permissions',
     ],
 
     /**
@@ -29,11 +29,11 @@ return [
      */
     'controllers' => [
         \Larapress\CRUD\CRUDControllers\RoleController::class,
-        'larapress.reports.controllers',
-        'larapress.notifications.controllers',
-        'larapress.profiles.controllers',
-        'larapress.ecommerce.controllers',
-        'larapress.pages.controllers',
+        'include::larapress.reports.controllers',
+        'include::larapress.notifications.controllers',
+        'include::larapress.profiles.controllers',
+        'include::larapress.ecommerce.controllers',
+        'include::larapress.pages.controllers',
     ],
 
     /**

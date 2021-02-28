@@ -19,5 +19,5 @@ Larapress CRUD is a Create/Read/Update/Delete resource management api, with:
 * create a new laravel project
 * add this project as a submodule at path packages/larapress-crud
 * use phpunit, phpcs
-    * ```vendor/bin/phpunit -c packages/larapress-reports/phpunit.xml```
+    * ```vendor/bin/phpunit -c packages/larapress-crud/phpunit.xml```
     * ```vendor/bin/phpcs --standard=packages/larapress-crud/phpcs.xml packages/larapress-crud/```

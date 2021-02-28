@@ -17,17 +17,18 @@ class PermissionsService implements IPermissionsService
      */
     public function forEachRegisteredProviderClass($callback)
     {
-        $meta_data_classes = config('larapress.crud.permissions');
         $process_class_names = function ($meta_data_classes, $iterate) use ($callback) {
-            foreach ($meta_data_classes as $meta_data_class) {
-                if (Str::startsWith($meta_data_class, 'include::')) {
-                    $iterate(config(Str::substr($meta_data_class, Str::length('include::'))), $iterate);
-                } else {
-                    $callback($meta_data_class);
+            if (is_array($meta_data_classes)) {
+                foreach ($meta_data_classes as $meta_data_class) {
+                    if (Str::startsWith($meta_data_class, 'include::')) {
+                        $iterate(config(Str::substr($meta_data_class, Str::length('include::'))), $iterate);
+                    } else {
+                        $callback($meta_data_class);
+                    }
                 }
             }
         };
-        $process_class_names($meta_data_classes, $process_class_names);
+        $process_class_names(config('larapress.crud.permissions'), $process_class_names);
     }
 
     /**
