@@ -95,7 +95,7 @@ abstract class PackageTestApplication extends TestCase
                     $token = $guard->login($user, true);
                     if ($token !== false) {
                         if (!is_null($token)) {
-                        $this->userTokens[$user->id] = $token;
+                            $this->userTokens[$user->id] = $token;
                         }
                     }
                 }

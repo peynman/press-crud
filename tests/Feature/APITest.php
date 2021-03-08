@@ -24,14 +24,16 @@ class APITest extends PackageTestApplication
     //  *
     //  * @return void
     //  */
-    public function testRootUserExistance() {
+    public function testRootUserExistance()
+    {
         $user = $this->getUserQuery()->find(1);
 
         $this->assertNotNull($user);
         $this->assertTrue($user->name === 'root');
     }
 
-    public function testRootPermissionsExist() {
+    public function testRootPermissionsExist()
+    {
         $permissions = Permission::all();
 
         $this->assertTrue($permissions->count() > 0);

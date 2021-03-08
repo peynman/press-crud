@@ -7,7 +7,8 @@ use Larapress\CRUD\Tests\PackageTestApplication;
 
 class RoleCRUDTest extends PackageTestApplication
 {
-    public function testUnAuthenticatedAPICall() {
+    public function testUnAuthenticatedAPICall()
+    {
         $this->json('POST', 'api/'.config('larapress.crud.routes.roles.name'), [
             'name' => 'test-role',
             'title' => 'test role',
@@ -60,7 +61,8 @@ class RoleCRUDTest extends PackageTestApplication
         ])->assertStatus(400);
     }
 
-    public function testRoleUpdate() {
+    public function testRoleUpdate()
+    {
         $token = $this->getAuthorizationToken($this->getRootUser());
         // create test role
         $this->json('POST', 'api/'.config('larapress.crud.routes.roles.name'), [
