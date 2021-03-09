@@ -17,11 +17,19 @@ return [
      */
     'permissions' => [
         \Larapress\CRUD\CRUD\RoleCRUDProvider::class,
+        \Larapress\CRUD\CRUD\SystemAppPermissions::class,
         'include::larapress.reports.permissions',
         'include::larapress.notifications.permissions',
         'include::larapress.profiles.permissions',
         'include::larapress.ecommerce.permissions',
         'include::larapress.pages.permissions',
+    ],
+
+    // named permissions used for system wide services
+    'app_permissions' => [
+        'horizon',
+        'log-viewer',
+        'telescope',
     ],
 
     /**
