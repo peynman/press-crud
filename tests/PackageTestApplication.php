@@ -10,6 +10,7 @@ use Larapress\CRUD\ICRUDUser;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Auth\StatefulGuard;
+use \Illuminate\Contracts\Auth\Authenticatable;
 
 abstract class PackageTestApplication extends TestCase
 {
@@ -26,6 +27,12 @@ abstract class PackageTestApplication extends TestCase
 
         $app->make(Kernel::class)->bootstrap();
 
+        /**
+         * Override the validation captcha extension to always return true.
+         */
+        $app['validator']->extend('captcha_api', function () {
+            return true;
+        });
         return $app;
     }
 
@@ -49,6 +56,12 @@ abstract class PackageTestApplication extends TestCase
     {
         return $this->getUserQuery()->find(1);
     }
+    public function beRootUser()
+    {
+        /** @var Authenticatable */
+        $user = $this->getRootUser();
+        $this->be($user);
+    }
     public function updateUser($username, $password): ICRUDUser
     {
         $user = $this->getUserQuery()->where('name', $username)->first();
@@ -63,11 +76,8 @@ abstract class PackageTestApplication extends TestCase
     }
     public function setupRolePermissions()
     {
-        $this->artisan('lp:crud', [
-            '--action' => 'update:permissions',
-        ]);
-        $this->artisan('lp:crud', [
-            '--action' => 'create:super-user',
+        $this->artisan('lp:crud:update-permissions');
+        $this->artisan('lp:crud:create-super-user', [
             '--password' => 'root',
             '--name' => 'root'
         ]);
@@ -84,8 +94,17 @@ abstract class PackageTestApplication extends TestCase
     }
 
     protected $userTokens = [];
+    /**
+     * Undocumented function
+     *
+     * @param Model|int $user
+     * @return string|null
+     */
     protected function getAuthorizationToken($user)
     {
+        if (is_numeric($user)) {
+            $user = call_user_func([config('larapress.crud.user.class'), 'find'], $user);
+        }
         if (!isset($this->userTokens[$user->id])) {
             $guards = config('auth.guards');
             foreach ($guards as $guardName => $guardParams) {
@@ -103,5 +122,19 @@ abstract class PackageTestApplication extends TestCase
         }
 
         return $this->userTokens[$user->id];
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param integer $user
+     * @param array $headers
+     * @return array
+     */
+    protected function getAuthorizationHeader($user = 1, $headers = [])
+    {
+        return array_merge($headers, [
+            'Authorization: Bearer ' . $this->getAuthorizationToken($user),
+        ]);
     }
 }

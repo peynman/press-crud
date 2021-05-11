@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Services;
+namespace Larapress\CRUD\Services\RBAC;
 
 interface IPermissionsService
 {

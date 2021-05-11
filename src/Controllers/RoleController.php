@@ -1,9 +1,15 @@
 <?php
 
-namespace Larapress\CRUD\CRUDControllers;
+namespace Larapress\CRUD\Controllers;
 
 use Larapress\CRUD\CRUD\RoleCRUDProvider;
+use Larapress\CRUD\Services\CRUD\BaseCRUDController;
 
+/**
+ * Standard CRUD Controller for Role resource.
+ *
+ * @group Roles Management
+ */
 class RoleController extends BaseCRUDController
 {
     public static function registerRoutes()

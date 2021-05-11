@@ -13,18 +13,18 @@
 
 use Illuminate\Support\Facades\Broadcast;
 use Larapress\CRUD\ICRUDUser;
-use Larapress\CRUD\Services\IBaseCRUDBroadcast;
+use Larapress\CRUD\Services\CRUD\ICRUDBroadcast;
 
 // general crud permissions channel for super-user
 Broadcast::channel('crud.{name}.{verb}', function (ICRUDUser $user, $name, $verb) {
-    /** @var IBaseCRUDBroadcast */
-    $service = app(IBaseCRUDBroadcast::class);
+    /** @var ICRUDBroadcast */
+    $service = app(ICRUDBroadcast::class);
     return $service->authorizeForCRUDChannel($user, $name, $verb);
 }, ['guards' => ['web', 'api']]);
 
 // general crud permissions channel for affiliates
 Broadcast::channel('crud.{name}.{verb}.${id}', function (ICRUDUser $user, $name, $verb, $uid) {
-    /** @var IBaseCRUDBroadcast */
-    $service = app(IBaseCRUDBroadcast::class);
+    /** @var ICRUDBroadcast */
+    $service = app(ICRUDBroadcast::class);
     return $service->authorizeForCRUDSupportChannel($user, $name, $verb, $uid);
 }, ['guards' => ['web', 'api']]);

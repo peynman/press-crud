@@ -1,13 +1,13 @@
 <?php
 
-namespace Larapress\CRUD\Services;
+namespace Larapress\CRUD\Services\CRUD;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\ICRUDUser;
 
-class BaseCRUDBroadcast implements IBaseCRUDBroadcast
+class BaseCRUDBroadcast implements ICRUDBroadcast
 {
     /**
      * Undocumented function

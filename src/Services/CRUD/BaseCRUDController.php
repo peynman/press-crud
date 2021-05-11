@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\CRUDControllers;
+namespace Larapress\CRUD\Services\CRUD;
 
 use http\Env\Response;
 use Illuminate\Http\Request;
@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
-use Larapress\CRUD\Services\ICRUDExporter;
-use Larapress\CRUD\Services\ICRUDProvider;
-use Larapress\CRUD\Services\ICRUDService;
-use Larapress\CRUD\Services\IPermissionsMetadata;
+use Larapress\CRUD\Services\CRUD\ICRUDExporter;
+use Larapress\CRUD\Services\CRUD\ICRUDProvider;
+use Larapress\CRUD\Services\CRUD\ICRUDService;
+use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 
 /**
  * Used by any resource that needs CRUD end points.
@@ -28,8 +28,8 @@ abstract class BaseCRUDController extends Controller
      * extend the constructor and call $service->useProvide() to set your crud resource.
      *
      * @param ICRUDService $service
-     * @param \Larapress\CRUD\Services\ICRUDFilterStorage $filterStorage
-     * @param \Larapress\CRUD\Services\ICRUDExporter $crudExporter
+     * @param \Larapress\CRUD\Services\CRUD\ICRUDFilterStorage $filterStorage
+     * @param \Larapress\CRUD\Services\CRUD\ICRUDExporter $crudExporter
      * @param \Illuminate\Http\Request $request
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
@@ -50,11 +50,25 @@ abstract class BaseCRUDController extends Controller
     }
 
     /**
-     * Search/Query resource table.
+     * Query/Search
      *
      * @param Request $request
      *
+     * @bodyParam limit int Limit number of records. Example: 30
+     * @bodyParam page int Number of pages of records to skip. Example: 1
+     * @bodyParam ref_id string A string retured from request body to keep track of request orders. Example: 1
+     * @bodyParam search string A string with length of 3 or more to search in searchable columns. Example: search term
+     * @bodyParam sort object[] An array of columns to sort on
+     * @bodyParam sort[].column string required the columns to sort on. Example: id
+     * @bodyParam sort[].direction string required sort in asc/desc direction. Example: asc
+     * @bodyParam filters object An object of parameters to filter on query
+     * @bodyParam appends string[] An array of attributes to append
+     * @bodyParam with object[] An array of relations to include
+     * @bodyParam with[].name string required relation name to include. Example: author
+     * @bodyParam with[].columns string relation columns to include. Example: id,name,data
+     *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     *
      * @throws AppException
      * @throws \Exception
      */
@@ -64,11 +78,12 @@ abstract class BaseCRUDController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create
      *
      * @param  Request $request
      *
      * @return Response
+     *
      * @throws ValidationException
      * @throws AppException
      * @throws \Exception
@@ -83,10 +98,10 @@ abstract class BaseCRUDController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Show Details
      *
      * @param \Illuminate\Http\Request $request
-     * @param  int $id
+     * @urlParam id int required The id of the resource to show details of
      *
      * @return Response
      */
@@ -96,10 +111,10 @@ abstract class BaseCRUDController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update
      *
      * @param  \Illuminate\Http\Request $request
-     * @param  int                      $id
+     * @urlParam id int required The id of the resource to update
      *
      * @return \Illuminate\Http\Response
      * @throws ValidationException
@@ -116,10 +131,10 @@ abstract class BaseCRUDController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove
      *
      * @param \Illuminate\Http\Request $request
-     * @param  int $id
+     * @urlParam id int required The id of the resource to remove.
      *
      * @return \Illuminate\Http\Response
      */
@@ -130,10 +145,9 @@ abstract class BaseCRUDController extends Controller
 
 
     /**
-     * Remove the specified resource from storage.
+     * Reports
      *
      * @param \Illuminate\Http\Request $request
-     * @param  int $id
      *
      * @return \Illuminate\Http\Response
      */
@@ -143,9 +157,10 @@ abstract class BaseCRUDController extends Controller
     }
 
     /**
-     * Undocumented function
+     * Export
      *
      * @param Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function export(Request $request)
@@ -199,6 +214,11 @@ abstract class BaseCRUDController extends Controller
                 'methods' => ['POST'],
                 'url' => $name.'/export',
                 'uses' => $controller.'@export',
+            ];
+            $verbs['show'] = [
+                'methods' => ['GET'],
+                'url' => $name.'/{id}',
+                'uses' => $controller.'@show',
             ];
         }
         if (in_array(IPermissionsMetadata::REPORTS, $avVerbs)) {

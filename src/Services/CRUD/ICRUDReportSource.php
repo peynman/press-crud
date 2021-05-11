@@ -1,8 +1,8 @@
 <?php
 
-namespace Larapress\CRUD\Services;
+namespace Larapress\CRUD\Services\CRUD;
 
-interface IReportSource
+interface ICRUDReportSource
 {
 
     /**

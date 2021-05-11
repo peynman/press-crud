@@ -6,18 +6,26 @@
 [![License](https://img.shields.io/packagist/l/peynman/larapress-crud.svg?style=flat-square)](https://packagist.org/packages/peynman/larapress-crud)
 
 ## What is it for?
+
 Larapress CRUD is a Create/Read/Update/Delete resource management api, with:
-* Easy name.verb based authorization
-* Simple yet overridable pipelines
-* Reusable code principles in mind
-* Role-based access control
+
+- Easy name.verb based authorization
+- Simple yet overridable pipelines
+- Reusable code principles in mind
+- Role-based access control
+
+## Install
+
+- `composer require peynman/larapress-crud`
 
 ## Usage
+
 [See usage](./USAGE.md)
 
 ## Development/Contribution Guid
-* create a new laravel project
-* add this project as a submodule at path packages/larapress-crud
-* use phpunit, phpcs
-    * ```vendor/bin/phpunit -c packages/larapress-crud/phpunit.xml```
-    * ```vendor/bin/phpcs --standard=packages/larapress-crud/phpcs.xml packages/larapress-crud/```
+
+- create a new laravel project
+- add this project as a submodule at path packages/larapress-crud
+- use phpunit, phpcs
+  - `vendor/bin/phpunit -c packages/larapress-crud/phpunit.xml packages/larapress-crud/`
+  - `vendor/bin/phpcs --standard=packages/larapress-crud/phpcs.xml packages/larapress-crud/`

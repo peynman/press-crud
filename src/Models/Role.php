@@ -2,9 +2,12 @@
 
 namespace Larapress\CRUD\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Larapress\CRUD\ICRUDUser;
+use Larapress\CRUD\Factories\RoleFactory;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * Class Roles.
@@ -21,6 +24,7 @@ use Larapress\CRUD\ICRUDUser;
  */
 class Role extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     protected $table = 'roles';
@@ -30,6 +34,17 @@ class Role extends Model
         'title',
         'priority',
     ];
+
+
+    /**
+     * Undocumented function
+     *
+     * @return Factory
+     */
+    protected static function newFactory()
+    {
+        return RoleFactory::new();
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany

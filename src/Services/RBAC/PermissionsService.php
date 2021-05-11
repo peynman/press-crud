@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Services;
+namespace Larapress\CRUD\Services\RBAC;
 
 use Illuminate\Support\Facades\Hash;
 use Larapress\CRUD\Models\Permission;

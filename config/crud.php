@@ -36,7 +36,7 @@ return [
      * All CRUD Controllers to register
      */
     'controllers' => [
-        \Larapress\CRUD\CRUDControllers\RoleController::class,
+        \Larapress\CRUD\Controllers\RoleController::class,
         'include::larapress.reports.controllers',
         'include::larapress.notifications.controllers',
         'include::larapress.profiles.controllers',
@@ -74,6 +74,9 @@ return [
     'routes' => [
         'roles' => [
             'name' => 'roles',
+        ],
+        'groups' => [
+            'name' => 'groups',
         ],
     ],
 

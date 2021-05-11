@@ -2,7 +2,7 @@
 
 namespace Larapress\CRUD\CRUD;
 
-use Larapress\CRUD\Services\IPermissionsMetadata;
+use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 
 class SystemAppPermissions implements IPermissionsMetadata
 {

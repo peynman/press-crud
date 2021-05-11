@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\CRUD\Services;
+namespace Larapress\CRUD\Services\CRUD;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;

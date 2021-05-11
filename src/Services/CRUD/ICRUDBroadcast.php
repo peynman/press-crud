@@ -1,11 +1,11 @@
 <?php
 
-namespace Larapress\CRUD\Services;
+namespace Larapress\CRUD\Services\CRUD;
 
 use Illuminate\Http\Request;
 use Larapress\CRUD\ICRUDUser;
 
-interface IBaseCRUDBroadcast
+interface ICRUDBroadcast
 {
     /**
      * Undocumented function

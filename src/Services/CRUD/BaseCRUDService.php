@@ -1,14 +1,11 @@
 <?php
 
-namespace Larapress\CRUD\Services;
+namespace Larapress\CRUD\Services\CRUD;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +16,9 @@ use Larapress\CRUD\Exceptions\ValidationException;
 use Larapress\CRUD\Events\CRUDCreated;
 use Larapress\CRUD\Events\CRUDDeleted;
 use Larapress\CRUD\Events\CRUDUpdated;
+use Larapress\CRUD\Exceptions\RequestException;
 use Larapress\CRUD\Extend\Helpers;
+use Larapress\CRUD\Services\CRUD\RDBStorage;
 
 /**
  * Class BaseCRUDService.
@@ -38,6 +37,11 @@ class BaseCRUDService implements ICRUDService
      * @var ICRUDStorage
      */
     public $crudStorage;
+
+    public function __construct()
+    {
+        $this->crudStorage = new RDBStorage();
+    }
 
     /**
      * @param ICRUDProvider $provider
@@ -61,6 +65,193 @@ class BaseCRUDService implements ICRUDService
     public function useCRUDStorage(ICRUDStorage $storage)
     {
         $this->crudStorage = $storage;
+    }
+
+    /**
+     * Display a specified resource by its id.
+     * load default relations, check object access rights for authenticated user.
+     *
+     * @param Request $request
+     * @param int|string     $id
+     *
+     * @return Model
+     * @throws AppException
+     */
+    public function show(Request $request, $id)
+    {
+        /**
+         * @var Builder
+         */
+        $query = call_user_func([$this->crudProvider->getModelClass(), 'query']);
+        $with = $this->crudProvider->getEagerRelations();
+        if (!is_null($with)) {
+            $query->with($with);
+        }
+        $model = $query->find($id);
+
+        if (!$this->crudProvider->onBeforeAccess($model)) {
+            throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
+        }
+
+        $model = $this->crudProvider->onShowModel($model);
+
+        return $model;
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
+     * @return \Illuminate\Http\Response
+     * @throws ValidationException
+     * @throws AppException
+     * @throws \Exception
+     */
+    public function update(Request $request, $id)
+    {
+        $updateRules = $this->crudProvider->getUpdateRules($request);
+
+        $input_data = null;
+        if ($this->crudProvider->shouldFilterRequestParamsByRules()) {
+            $askedKeys = array_keys($updateRules);
+            $reqKeys = $request->keys();
+            $keys = [];
+            foreach ($askedKeys as $key) {
+                $askKey = explode('.', $key)[0];
+                if (in_array($askKey, $reqKeys)) {
+                    $keys[] = $askKey;
+                }
+            }
+            $input_data = $request->all($keys);
+        } else {
+            $input_data = $request->all();
+        }
+
+        $validate = Validator::make($input_data, $updateRules);
+        if ($validate->fails()) {
+            throw new ValidationException($validate);
+        }
+
+        $exclude = $this->crudProvider->getExcludeIfNull();
+        foreach ($exclude as $excluded) {
+            if (isset($input_data[$excluded]) && is_null($input_data[$excluded])) {
+                unset($input_data[$excluded]);
+            }
+        }
+        $object = $this->crudStorage->update(
+            $this->crudProvider,
+            $id,
+            $input_data
+        );
+        if (is_null($object)) {
+            throw new AppException(AppException::ERR_OBJECT_NOT_FOUND);
+        }
+        $with = $this->crudProvider->getEagerRelations();
+        if (!is_null($with)) {
+            $object->load($with);
+        }
+
+        CRUDUpdated::dispatch(Auth::user(), $object, get_class($this->crudProvider), Carbon::now());
+
+        return $object;
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     * @throws \Larapress\Core\Exceptions\AppException
+     */
+    public function destroy(Request $request, $id)
+    {
+        /**
+         * @var Builder
+         */
+        $query = call_user_func([$this->crudProvider->getModelClass(), 'query']);
+        $cascades = $this->crudProvider->getDeleteCascades();
+
+        $object = $query->find($id);
+        if (is_null($object)) {
+            throw new RequestException(trans('larapress::exceptions.app.').AppException::ERR_OBJECT_NOT_FOUND);
+        }
+
+        $object->load($cascades);
+
+        DB::transaction(
+            function () use ($object, $cascades) {
+                if (!$this->crudProvider->onBeforeAccess($object)) {
+                    throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
+                }
+
+                if ($this->crudProvider->onBeforeDestroy($object)) {
+                    $object->delete();
+                    // @todo: implement case cade delete
+                    //                if ($this->crudProvider->onBeforeDestroyCascades($object)) {
+                    //                    foreach ($cascades as $cascade) {
+                    //                        $ids = collect([$object])->pluck($cascade);
+                    //                    }
+                    //                    $this->crudProvider->onAfterDestroyCascades($object);
+                    //                }
+                    $this->crudProvider->onAfterDestroy($object);
+                }
+            }
+        );
+
+        CRUDDeleted::dispatch(Auth::user(), $object, get_class($this->crudProvider), Carbon::now());
+
+        return response()->json($object);
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @throws \Larapress\Core\Exceptions\AppException
+     */
+    public function reports(Request $request)
+    {
+        $user = Auth::user();
+        /** @var IReportSource[] */
+        $reports = $this->crudProvider->getReportSources();
+
+        $names = [];
+        foreach ($reports as $source) {
+            $sNames = $source->getReportNames($user);
+            foreach ($sNames as $name) {
+                $names[$name] = $source;
+            }
+        }
+
+        $validate = Validator::make($request->all('name'), [
+            'name' => 'required|in:' . implode(',', array_keys($names))
+        ]);
+        if ($validate->fails()) {
+            throw new ValidationException($validate);
+        }
+
+        $report = $request->get('name');
+
+        return $names[$report]->getReport($user, $report, $request->all());
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @throws \Larapress\Core\Exceptions\AppException
+     */
+    public function export(Request $request)
+    {
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '1G');
+
+        [$query, $total] = $this->buildQueryForRequest($request);
+        return $this->crudExporter->getResponseForQueryExport($request, $query, $this->crudProvider);
     }
 
     /**
@@ -158,25 +349,8 @@ class BaseCRUDService implements ICRUDService
                 unset($input_data[$excluded]);
             }
         }
-        $data = $this->crudProvider->onBeforeCreate($input_data);
 
-        try {
-            DB::beginTransaction();
-            if (is_null($this->crudStorage)) {
-                $object = call_user_func([$this->crudProvider->getModelClass(), 'create'], $data);
-                self::syncRelations('store', $this->crudProvider->getAutoSyncRelations(), $object, $data);
-            } else {
-                $object = $this->crudStorage->store($request, $data);
-            }
-
-            $this->crudProvider->onAfterCreate($object, $input_data);
-
-            DB::commit();
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            throw $exception;
-        }
-
+        $object = $this->crudStorage->store($this->crudProvider, $input_data);
         $with = $this->crudProvider->getEagerRelations();
         if (!is_null($with)) {
             $object->load($with);
@@ -185,214 +359,6 @@ class BaseCRUDService implements ICRUDService
         CRUDCreated::dispatch(Auth::user(), $object, get_class($this->crudProvider), Carbon::now());
 
         return $object;
-    }
-
-    /**
-     * Display a specified resource by its id.
-     * load default relations, check object access rights for authenticated user.
-     *
-     * @param Request $request
-     * @param int|string     $id
-     *
-     * @return Model
-     * @throws AppException
-     */
-    public function show(Request $request, $id)
-    {
-        /**
-         * @var Builder
-         */
-        $query = call_user_func([$this->crudProvider->getModelClass(), 'query']);
-        $with = $this->crudProvider->getEagerRelations();
-        if (!is_null($with)) {
-            $query->with($with);
-        }
-        $model = $query->find($id);
-
-        if (!$this->crudProvider->onBeforeAccess($model)) {
-            throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
-        }
-
-        $model = $this->crudProvider->onShowModel($model);
-
-        return $model;
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param int                      $id
-     *
-     * @return \Illuminate\Http\Response
-     * @throws ValidationException
-     * @throws AppException
-     * @throws \Exception
-     */
-    public function update(Request $request, $id)
-    {
-        $updateRules = $this->crudProvider->getUpdateRules($request);
-
-        $input_data = null;
-        if ($this->crudProvider->shouldFilterRequestParamsByRules()) {
-            $askedKeys = array_keys($updateRules);
-            $reqKeys = $request->keys();
-            $keys = [];
-            foreach ($askedKeys as $key) {
-                $askKey = explode('.', $key)[0];
-                if (in_array($askKey, $reqKeys)) {
-                    $keys[] = $askKey;
-                }
-            }
-            $input_data = $request->all($keys);
-        } else {
-            $input_data = $request->all();
-        }
-
-        $validate = Validator::make($input_data, $updateRules);
-        if ($validate->fails()) {
-            throw new ValidationException($validate);
-        }
-
-        $exclude = $this->crudProvider->getExcludeIfNull();
-        foreach ($exclude as $excluded) {
-            if (isset($input_data[$excluded]) && is_null($input_data[$excluded])) {
-                unset($input_data[$excluded]);
-            }
-        }
-        $data = $this->crudProvider->onBeforeUpdate($input_data);
-
-        $object = $this->crudProvider->getObjectFromID($id);
-        if (is_null($object)) {
-            $object = call_user_func([$this->crudProvider->getModelClass(), 'find'], $id);
-        }
-        if (is_null($object)) {
-            throw new AppException(AppException::ERR_OBJECT_NOT_FOUND);
-        }
-
-        $data = $this->crudProvider->onBeforeObjectUpdate($object, $data);
-
-        DB::transaction(
-            function () use ($request, $data, $object, $input_data) {
-                if (!$this->crudProvider->onBeforeAccess($object)) {
-                    throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
-                }
-
-                if (is_null($this->crudStorage)) {
-                    $object->update($data);
-                    self::syncRelations('update', $this->crudProvider->getAutoSyncRelations(), $object, $data);
-
-                    $this->crudProvider->onAfterUpdate($object, $input_data);
-                } else {
-                    $this->crudStorage->update($request, $object, $data);
-                }
-            }
-        );
-
-        $with = $this->crudProvider->getEagerRelations();
-        if (!is_null($with)) {
-            $object->load($with);
-        }
-
-        CRUDUpdated::dispatch(Auth::user(), $object, get_class($this->crudProvider), Carbon::now());
-
-        return $object;
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
-     * @throws \Larapress\Core\Exceptions\AppException
-     */
-    public function destroy(Request $request, $id)
-    {
-        /**
-         * @var Builder
-         */
-        $query = call_user_func([$this->crudProvider->getModelClass(), 'query']);
-        $cascades = $this->crudProvider->getDeleteCascades();
-
-        $object = $query->find($id);
-        if (is_null($object)) {
-            throw new AppException(AppException::ERR_OBJECT_NOT_FOUND);
-        }
-
-        $object->load($cascades);
-
-        DB::transaction(
-            function () use ($object, $cascades) {
-                if (!$this->crudProvider->onBeforeAccess($object)) {
-                    throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
-                }
-
-                if ($this->crudProvider->onBeforeDestroy($object)) {
-                    $object->delete();
-                    // @todo: implement case cade delete
-                    //                if ($this->crudProvider->onBeforeDestroyCascades($object)) {
-                    //                    foreach ($cascades as $cascade) {
-                    //                        $ids = collect([$object])->pluck($cascade);
-                    //                    }
-                    //                    $this->crudProvider->onAfterDestroyCascades($object);
-                    //                }
-                    $this->crudProvider->onAfterDestroy($object);
-                }
-            }
-        );
-
-        CRUDDeleted::dispatch(Auth::user(), $object, get_class($this->crudProvider), Carbon::now());
-
-        return response()->json($object);
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
-     * @throws \Larapress\Core\Exceptions\AppException
-     */
-    public function reports(Request $request)
-    {
-        $user = Auth::user();
-        /** @var IReportSource[] */
-        $reports = $this->crudProvider->getReportSources();
-
-        $names = [];
-        foreach ($reports as $source) {
-            $sNames = $source->getReportNames($user);
-            foreach ($sNames as $name) {
-                $names[$name] = $source;
-            }
-        }
-
-        $validate = Validator::make($request->all('name'), [
-            'name' => 'required|in:' . implode(',', array_keys($names))
-        ]);
-        if ($validate->fails()) {
-            throw new ValidationException($validate);
-        }
-
-        $report = $request->get('name');
-
-        return $names[$report]->getReport($user, $report, $request->all());
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
-     * @throws \Larapress\Core\Exceptions\AppException
-     */
-    public function export(Request $request)
-    {
-        ini_set('max_execution_time', 0);
-        ini_set('memory_limit', '1G');
-
-        [$query, $total] = $this->buildQueryForRequest($request);
-        return $this->crudExporter->getResponseForQueryExport($request, $query, $this->crudProvider);
     }
 
     /**
@@ -489,40 +455,41 @@ class BaseCRUDService implements ICRUDService
             $paginate_from = max(0, intval($query_params['page']) - 1);
         }
 
-        // calculate summerized columns only for first page query
         $summerized_column_values = [];
-        $summerize_columns = [];
-        if ($paginate_from === 0) {
-            if (isset($query_params['summerize'])) {
-                if (!is_array($query_params['summerize'])) {
-                    $summerize_columns = [$query_params['summerize']];
-                } else {
-                    $summerize_columns = $query_params['summerize'];
+
+        // use pagination if we are not searching
+        if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
+            // calculate summerized columns only for first page query
+            $summerize_columns = [];
+            if ($paginate_from === 0) {
+                if (isset($query_params['summerize'])) {
+                    if (!is_array($query_params['summerize'])) {
+                        $summerize_columns = [$query_params['summerize']];
+                    } else {
+                        $summerize_columns = $query_params['summerize'];
+                    }
                 }
-            }
-            $validSummerize = $this->crudProvider->getSummerizableColumns();
-            $validSummNames = array_keys($validSummerize);
-            foreach ($summerize_columns as $summColName) {
-                if (in_array($summColName, $validSummNames)) {
-                    if (is_callable($validSummerize[$summColName])) {
-                        $summerized_column_values[$summColName] = $validSummerize[$summColName]($query, $query_params);
+                $validSummerize = $this->crudProvider->getSummerizableColumns();
+                $validSummNames = array_keys($validSummerize);
+                foreach ($summerize_columns as $summColName) {
+                    if (in_array($summColName, $validSummNames)) {
+                        if (is_callable($validSummerize[$summColName])) {
+                            $summerized_column_values[$summColName] = $validSummerize[$summColName]($query, $query_params);
+                        }
                     }
                 }
             }
         }
 
-        // use pagination if we are not searching
-        if (!isset($query_params['search']) || strlen($query_params['search']) < 2) {
-            $limit = isset($query_params['limit']) ? $query_params['limit'] : 10;
-            if ($total > 100) {
-                $offset = $cq->select(['id'])->skip($paginate_from * $limit)->first();
-                if (!is_null($offset)) {
-                    $query->where('id', '<=', $offset->id);
-                }
-                $query->take($limit);
-            } else {
-                $query->skip($paginate_from * $limit)->take($limit);
+        $limit = isset($query_params['limit']) ? $query_params['limit'] : 10;
+        if ($total > 100) {
+            $offset = $cq->skip($paginate_from * $limit)->first();
+            if (!is_null($offset)) {
+                $query->where('id', '<=', $offset->id);
             }
+            $query->take($limit);
+        } else {
+            $query->skip($paginate_from * $limit)->take($limit);
         }
 
         return [$query, $total, $summerized_column_values];
@@ -662,6 +629,28 @@ class BaseCRUDService implements ICRUDService
                                 );
                             }
                             break;
+                        case 'hasnot-has':
+                            $values = $filters[$field];
+                            if (is_array($values) && isset($values[0][isset($parts[3]) ? $parts[3] : 'id'])) {
+                                $values = collect($values)->pluck('id')->toArray();
+                            } else {
+                                if (is_array($values)) {
+                                    $values = array_values($values);
+                                } else {
+                                    $values = [$values];
+                                }
+                            }
+                            if (count($values) > 0) {
+                                $query->whereDoesntHave(
+                                    $parts[1],
+                                    function (Builder $q) use ($values, $parts) {
+                                        $q->whereHas($parts[2], function ($q) use ($parts, $values) {
+                                            $q->whereIn($parts[3], $values);
+                                        });
+                                    }
+                                );
+                            }
+                            break;
                         case 'equals':
                             $query->where($parts[1], '=', $filters[$field]);
                             break;
@@ -681,7 +670,7 @@ class BaseCRUDService implements ICRUDService
                             break;
                         case 'has-count':
                             if (is_numeric($filters[$field])) {
-                                $query->withCount($parts[1])->having($parts[1].'_count', $parts[2], $filters[$field]);
+                                $query->withCount($parts[1])->having($parts[1] . '_count', $parts[2], $filters[$field]);
                             }
                             break;
                         case '>':
@@ -723,56 +712,5 @@ class BaseCRUDService implements ICRUDService
             'per_page' => $paginate->perPage(),
             'ref_id' => isset($params['ref_id']) ? $params['ref_id'] : null,
         ];
-    }
-
-    protected static function syncRelation($relation, $callback, $object, $data)
-    {
-        $saveAfter = false;
-        /** @var HasMany|BelongsToMany|BelongsTo $builder */
-        $builder = call_user_func([$object, $relation]);
-        $builderClass = class_basename($builder);
-
-        switch ($builderClass) {
-            case class_basename(HasMany::class):
-                $builder->saveMany($callback($object, $data));
-                break;
-            case class_basename(BelongsTo::class):
-                $builder->associate($callback($object, $data));
-                $saveAfter = true;
-                break;
-            case class_basename(BelongsToMany::class):
-                $rel = $callback($object, $data);
-                if (is_array($rel)) {
-                    $builder->attach($rel[0], isset($rel[1]) ? $rel[1] : []);
-                } else {
-                    $builder->attach($rel);
-                }
-                break;
-        }
-
-        return $saveAfter;
-    }
-
-    /**
-     * @param $method
-     * @param array $autoSyncRelations
-     * @param \Illuminate\Database\Eloquent\Model $object
-     * @param array $data
-     *
-     */
-    protected static function syncRelations($method, $autoSyncRelations, $object, $data)
-    {
-        $saveAfter = false;
-        foreach ($autoSyncRelations as $relation => $callback) {
-            if (is_callable($callback)) {
-                $saveAfter = $saveAfter || self::syncRelation($relation, $callback, $object, $data);
-            } elseif (isset($callback[$method]) && is_callable($callback[$method])) {
-                $saveAfter = $saveAfter || self::syncRelation($relation, $callback[$method], $object, $data);
-            }
-        }
-
-        if ($saveAfter) {
-            $object->save();
-        }
     }
 }

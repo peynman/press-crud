@@ -13,7 +13,6 @@ class RoleCRUDTest extends PackageTestApplication
             'name' => 'test-role',
             'title' => 'test role',
             'priority' => 100,
-            'permissions' => Permission::query()->get(['id'])->toArray(),
         ])
         // redirects to signin
         ->assertStatus(302);
@@ -21,16 +20,14 @@ class RoleCRUDTest extends PackageTestApplication
 
     public function testRoleCreate()
     {
-        $token = $this->getAuthorizationToken($this->getRootUser());
+        $$auth = $this->getAuthorizationHeader();
         // success create
         $this->json('POST', 'api/'.config('larapress.crud.routes.roles.name'), [
             'name' => 'test-role',
             'title' => 'test role',
             'priority' => 100,
             'permissions' => Permission::query()->get(['id'])->toArray(),
-        ], [
-            'Authorization' => $token,
-        ])->assertStatus(200);
+        ], $auth)->assertStatus(200);
 
         // invalid creates
         $this->json('POST', 'api/'.config('larapress.crud.routes.roles.name'), [
@@ -38,17 +35,13 @@ class RoleCRUDTest extends PackageTestApplication
             'title' => 'test role',
             'priority' => 100,
             'permissions' => Permission::query()->get(['id'])->toArray(),
-        ], [
-            'Authorization' => $token,
-        ])->assertStatus(400);
+        ], $auth)->assertStatus(400);
 
         // name, title required
         $this->json('POST', 'api/'.config('larapress.crud.routes.roles.name'), [
             'priority' => 100,
             'permissions' => Permission::query()->get(['id'])->toArray(),
-        ], [
-            'Authorization' => $token,
-        ])->assertStatus(400);
+        ], $auth)->assertStatus(400);
 
         // name with invalid chars
         $this->json('POST', 'api/'.config('larapress.crud.routes.roles.name'), [
@@ -56,23 +49,19 @@ class RoleCRUDTest extends PackageTestApplication
             'title' => 'test role invalud',
             'priority' => 100,
             'permissions' => Permission::query()->get(['id'])->toArray(),
-        ], [
-            'Authorization' => $token,
-        ])->assertStatus(400);
+        ], $auth)->assertStatus(400);
     }
 
     public function testRoleUpdate()
     {
-        $token = $this->getAuthorizationToken($this->getRootUser());
+        $auth = $this->getAuthorizationHeader();
         // create test role
         $this->json('POST', 'api/'.config('larapress.crud.routes.roles.name'), [
             'name' => 'test-role',
             'title' => 'test role',
             'priority' => 100,
             'permissions' => Permission::query()->get(['id'])->toArray(),
-        ], [
-            'Authorization' => $token,
-        ])->assertStatus(200);
+        ], $auth)->assertStatus(200);
 
         // update test role success
         $this->json('PUT', 'api/'.config('larapress.crud.routes.roles.name').'/2', [
@@ -80,9 +69,7 @@ class RoleCRUDTest extends PackageTestApplication
             'title' => 'test role updated',
             'priority' => 100,
             'permissions' => Permission::query()->where('id', '<', 30)->get(['id'])->toArray(),
-        ], [
-            'Authorization' => $token,
-        ])->assertStatus(200);
+        ], $auth)->assertStatus(200);
 
         // use already exists name for another role
         $this->json('PUT', 'api/'.config('larapress.crud.routes.roles.name').'/2', [
@@ -90,8 +77,6 @@ class RoleCRUDTest extends PackageTestApplication
             'title' => 'test role updated',
             'priority' => 100,
             'permissions' => Permission::query()->where('id', '<', 30)->get(['id'])->toArray(),
-        ], [
-            'Authorization' => $token,
-        ])->assertStatus(400);
+        ], $auth)->assertStatus(400);
     }
 }
