@@ -2,27 +2,32 @@
 
 namespace Larapress\CRUD\CRUD;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Larapress\CRUD\Services\CRUD\BaseCRUDProvider;
+use Larapress\CRUD\Services\CRUD\Traits\CRUDProviderTrait;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 use Larapress\CRUD\Models\Role;
 use Larapress\CRUD\ICRUDUser;
+use Larapress\CRUD\Services\CRUD\ICRUDVerb;
+use Larapress\CRUD\Services\CRUD\Traits\CRUDRelationSyncTrait;
 
-class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
+class RoleCRUDProvider implements ICRUDProvider
 {
-    use BaseCRUDProvider;
+    use CRUDProviderTrait;
+    use CRUDRelationSyncTrait;
 
     public $name_in_config = 'larapress.crud.routes.roles.name';
+    public $model_in_config = 'larapress.crud.routes.roles.model';
+    public $compositions_in_config = 'larapress.crud.routes.roles.compositions';
+
     public $verbs = [
-        self::VIEW,
-        self::CREATE,
-        self::EDIT,
-        self::DELETE,
+        ICRUDVerb::VIEW,
+        ICRUDVerb::CREATE,
+        ICRUDVerb::EDIT,
+        ICRUDVerb::DELETE,
     ];
-    public $model = Role::class;
     public $createValidations = [
         'name' => 'required|string|unique:roles,name|max:190|regex:/(^[A-Za-z0-9-_.]+$)+/',
         'title' => 'required|string',
@@ -35,6 +40,7 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         'title',
         'created_at',
         'updated_at',
+        'deleted_at',
     ];
     public $validRelations = [
         'permissions',
@@ -50,9 +56,10 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      * Exclude current id in name unique request
      *
      * @param Request $request
-     * @return void
+     *
+     * @return array
      */
-    public function getUpdateRules(Request $request)
+    public function getUpdateRules(Request $request): array
     {
         /** @var ICRUDUser */
         $user = Auth::user();
@@ -65,7 +72,7 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
         ];
 
         $updateValidations['name'] .= ',' . $request->route('id');
-        $updateValidations['priority'] .= '|lte:' . is_null($user) ? 0 : $user->getUserHighestRole()->priority;
+        $updateValidations['priority'] .= '|lte:' . (is_null($user) ? 0 : $user->getUserHighestRole()->priority);
         return $updateValidations;
     }
 
@@ -73,14 +80,14 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
     /**
      * @param Builder $query
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @return Builder
      */
-    public function onBeforeQuery($query)
+    public function onBeforeQuery(Builder $query): Builder
     {
         /** @var ICRUDUser */
         $user = Auth::user();
 
-        if (! $this->user->hasRole(config('larapress.profiles.security.roles.super-role'))) {
+        if (! $user->hasRole(config('larapress.profiles.security.roles.super_role'))) {
             $query->where('priority', '>=', $user->getUserHighestRole()->priority);
         }
 
@@ -92,12 +99,12 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
      *
      * @return bool
      */
-    public function onBeforeAccess($object)
+    public function onBeforeAccess($object): bool
     {
         /** @var ICRUDUser */
         $user = Auth::user();
 
-        if (! $user->hasRole(config('larapress.profiles.security.roles.super-role'))) {
+        if (! $user->hasRole(config('larapress.profiles.security.roles.super_role'))) {
             return $user->getUserHighestRole()->priority >= $object->priority;
         }
 
@@ -107,11 +114,12 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
     /**
      * Undocumented function
      *
-     * @param [type] $object
-     * @param [type] $input_data
+     * @param $object
+     * @param array $input_data
+     *
      * @return void
      */
-    public function onAfterCreate($object, $input_data)
+    public function onAfterCreate($object, array $input_data): void
     {
         if (!empty($input_data['permissions'])) {
             $this->syncBelongsToManyRelation('permissions', $object, $input_data['permissions']);
@@ -121,11 +129,12 @@ class RoleCRUDProvider implements ICRUDProvider, IPermissionsMetadata
     /**
      * Undocumented function
      *
-     * @param [type] $object
-     * @param [type] $input_data
+     * @param $object
+     * @param array $input_data
+
      * @return void
      */
-    public function onAfterUpdate($object, $input_data)
+    public function onAfterUpdate($object, array $input_data): void
     {
         if (!empty($input_data['permissions'])) {
             $this->syncBelongsToManyRelation('permissions', $object, $input_data);

@@ -5,7 +5,7 @@ namespace Larapress\CRUD\Providers;
 use Illuminate\Support\ServiceProvider;
 use Larapress\CRUD\Commands\CreateSuperUser;
 use Larapress\CRUD\Services\RBAC\IPermissionsService;
-use Larapress\CRUD\Services\CRUD\BaseCRUDService;
+use Larapress\CRUD\Services\CRUD\CRUDService;
 use Larapress\CRUD\Services\CRUD\ICRUDService;
 use Larapress\CRUD\Commands\UpdatePermissions;
 use Larapress\CRUD\Repository\IPermissionsRepository;
@@ -17,6 +17,7 @@ use Larapress\CRUD\Services\CRUD\ICRUDBroadcast;
 use Larapress\CRUD\Services\RBAC\PermissionsService;
 use Larapress\CRUD\Validations\DateTimeZonedValidator;
 use Larapress\CRUD\Validations\DBObjectIDsValidator;
+use Larapress\CRUD\Validations\NumericFarsiValidator;
 
 class PackageServiceProvider extends ServiceProvider
 {
@@ -27,11 +28,11 @@ class PackageServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(ICRUDService::class, BaseCRUDService::class);
+        $this->app->bind(ICRUDService::class, CRUDService::class);
         $this->app->bind(IRoleRepository::class, RoleRepository::class);
         $this->app->bind(IPermissionsRepository::class, PermissionsRepository::class);
         $this->app->bind(IPermissionsService::class, PermissionsService::class);
-        $this->app->bind(ICRUDBroadcast::class, BaseCRUDBroadcast::class);
+        $this->app->bind(ICRUDBroadcast::class, CRUDBroadcast::class);
     }
 
     /**
@@ -61,7 +62,7 @@ class PackageServiceProvider extends ServiceProvider
         }
 
 
-        DBObjectIDsValidator::register();
+        NumericFarsiValidator::register();
         DateTimeZonedValidator::register();
     }
 }

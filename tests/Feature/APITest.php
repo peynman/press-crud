@@ -14,7 +14,7 @@ class APITest extends PackageTestApplication
      */
     public function testPageNotFound()
     {
-        $response = $this->get('/');
+        $response = $this->get('/no-page');
 
         $response->assertStatus(404);
     }

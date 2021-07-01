@@ -22,7 +22,7 @@ class CustomerTestApplication extends PackageTestApplication
 
         SMSGatewayData::factory()->create();
         Domain::factory()->create([
-            'domain' => ''
+            'domain' => 'localhost'
         ]);
         Role::factory()->create();
         Role::factory()->create();
@@ -30,7 +30,7 @@ class CustomerTestApplication extends PackageTestApplication
 
     protected function createVerifiedCustomer($name, $password, $phone = null, $email = null) : IECommerceUser
     {
-        $userClass = config('larapress.crud.user.class');
+        $userClass = config('larapress.crud.user.model');
         /** @var Factory */
         $factory = call_user_func([$userClass, 'factory']);
         /** @var IECommerceUser */
@@ -38,7 +38,7 @@ class CustomerTestApplication extends PackageTestApplication
             'name' => $name,
             'password' => $password
         ]);
-        $customer->roles()->attach(config('larapress.profiles.customer_role_id'));
+        $customer->roles()->attach(config('larapress.auth.signup.default_role'));
         $customer->domains()->attach(config('larapress.auth.signup.default_domain'), [
             'flags' => UserDomainFlags::DEFAULT_DOMAIN | UserDomainFlags::REGISTRATION_DOMAIN | UserDomainFlags::MEMBERSHIP_DOMAIN,
         ]);

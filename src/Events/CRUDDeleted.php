@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
+use Larapress\CRUD\ICRUDUser;
+use Larapress\CRUD\Services\CRUD\ICRUDService;
+use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 
 /**
  * Class CRUDDeleted.
@@ -38,7 +41,7 @@ class CRUDDeleted implements ShouldBroadcast
     /**
      * Create a new event instance.
      *
-     * @param Model $model
+     * @param ICRUDUser|int $model
      * @param string $providerClass
      * @param Carbon $timestamp
      */
@@ -58,7 +61,9 @@ class CRUDDeleted implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('crud.'.$this->getProvider()->getPermissionObjectName().'.deleted');
+        /** @var IPermissionsMetadata */
+        $provider = $this->getProvider();
+        return new PrivateChannel('crud.'.$provider->getPermissionObjectName().'.deleted');
     }
 
 
@@ -74,7 +79,7 @@ class CRUDDeleted implements ShouldBroadcast
             return null;
         }
 
-        return call_user_func([config('larapress.crud.user.class'), "find"], $this->userId);
+        return call_user_func([config('larapress.crud.user.model'), "find"], $this->userId);
     }
 
     /**
@@ -82,9 +87,14 @@ class CRUDDeleted implements ShouldBroadcast
      */
     public function getProvider(): ICRUDProvider
     {
-        $class = $this->providerClass;
-        return new $class;
+        /** @var ICRUDService */
+        $crudService = app(ICRUDService::class);
+        $providerClass = new $this->providerClass;
+        $provider = new $providerClass;
+        $crudService->useProvider($provider);
+        return $crudService->getCompositeProvider();
     }
+
     /**
      * @return Carbon
      */

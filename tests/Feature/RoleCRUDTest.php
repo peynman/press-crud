@@ -20,7 +20,7 @@ class RoleCRUDTest extends PackageTestApplication
 
     public function testRoleCreate()
     {
-        $$auth = $this->getAuthorizationHeader();
+        $auth = $this->getAuthorizationHeader();
         // success create
         $this->json('POST', 'api/'.config('larapress.crud.routes.roles.name'), [
             'name' => 'test-role',

@@ -32,7 +32,7 @@ interface ICRUDUser
     public function getUserHighestRole();
 
     /**
-     * @param string|string[]|int|int[]     $permissions
+     * @param string|string[]|int|int[] $permissions
      *
      * @return bool
      */

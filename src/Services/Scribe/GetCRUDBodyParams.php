@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Request;
 use Knuckles\Scribe\Extracting\Strategies\BodyParameters\GetFromFormRequest;
-use Larapress\CRUD\Services\CRUD\BaseCRUDController;
+use Larapress\CRUD\Services\CRUD\CRUDController;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 use Mpociot\Reflection\DocBlock;
 use ReflectionClass;
@@ -18,7 +18,7 @@ class GetCRUDBodyParams extends GetFromFormRequest
     {
         $parameters = parent::__invoke($route, $controller, $method, $routeRules, $alreadyExtractedData);
 
-        if ($controller->isSubclassOf(BaseCRUDController::class)) {
+        if ($controller->isSubclassOf(CRUDController::class)) {
             $providerClass = $route->getAction('provider');
             if (!is_null($providerClass)) {
                 /** @var ICRUDProvider */

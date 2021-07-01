@@ -52,6 +52,7 @@ class AppException extends Exception
     const ERR_USER_HAS_NO_DOMAIN = 10043;
     const ERR_GIFT_LOCKED_TO_SUPPORT = 10044;
     const ERR_INVALID_SIGNUP_DRIVER = 10045;
+    const ERR_INVALID_VERB = 10046;
 
     private $error_code;
 

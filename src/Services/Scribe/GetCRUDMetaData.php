@@ -5,7 +5,7 @@ namespace Larapress\CRUD\Services\Scribe;
 use Knuckles\Scribe\Extracting\ParamHelpers;
 use Illuminate\Routing\Route;
 use Knuckles\Scribe\Extracting\Strategies\Metadata\GetFromDocBlocks;
-use Larapress\CRUD\Services\CRUD\BaseCRUDController;
+use Larapress\CRUD\Services\CRUD\CRUDController;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 use Mpociot\Reflection\DocBlock;
@@ -21,7 +21,7 @@ class GetCRUDMetaData extends GetFromDocBlocks
     {
         $result = parent::__invoke($route, $controller, $method, $routeRules, $alreadyExtractedData);
 
-        if ($controller->isSubclassOf(BaseCRUDController::class)) {
+        if ($controller->isSubclassOf(CRUDController::class)) {
             $providerClass = $route->getAction('provider');
             if (!is_null($providerClass)) {
                 /** @var ICRUDProvider|IPermissionsMetadata */

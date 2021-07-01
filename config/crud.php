@@ -1,28 +1,18 @@
 <?php
 
+use ;
+
 return [
     /**
-     * User model definition
-     * User CRUD provider and a master password if you need one
+     * User model class
+     * User CRUD provider
      */
     'user' => [
-        'class' => App\Models\User::class,
-        'crud-provider' => \Larapress\Profiles\CRUD\UserCRUDProvider::class,
-        'master_customer_password' => env('MASTER_CUSTOMER_PASSWORD', null),
-    ],
-
-    /**
-     * All CRUDProviders to be loaded
-     * this dictates the permissions available
-     */
-    'permissions' => [
-        \Larapress\CRUD\CRUD\RoleCRUDProvider::class,
-        \Larapress\CRUD\CRUD\SystemAppPermissions::class,
-        'include::larapress.reports.permissions',
-        'include::larapress.notifications.permissions',
-        'include::larapress.profiles.permissions',
-        'include::larapress.ecommerce.permissions',
-        'include::larapress.pages.permissions',
+        'model' => App\Models\User::class,
+        'provider' => \Larapress\Profiles\CRUD\UserCRUDProvider::class,
+        'compositions' => [
+            // \Larapress\Auth\Compositions\UserAuthComposition::class,
+        ],
     ],
 
     // named permissions used for system wide services
@@ -32,16 +22,15 @@ return [
         'telescope',
     ],
 
-    /**
-     * All CRUD Controllers to register
-     */
-    'controllers' => [
-        \Larapress\CRUD\Controllers\RoleController::class,
-        'include::larapress.reports.controllers',
-        'include::larapress.notifications.controllers',
-        'include::larapress.profiles.controllers',
-        'include::larapress.ecommerce.controllers',
-        'include::larapress.pages.controllers',
+    // available verbs for crud resources
+    'verbs' => [
+        \Larapress\CRUD\Services\CRUD\ICRUDVerb::VIEW => \Larapress\CRUD\Services\CRUD\Verbs\Query\Query::class,
+        \Larapress\CRUD\Services\CRUD\ICRUDVerb::EDIT => \Larapress\CRUD\Services\CRUD\Verbs\Update::class,
+        \Larapress\CRUD\Services\CRUD\ICRUDVerb::CREATE => \Larapress\CRUD\Services\CRUD\Verbs\Store::class,
+        \Larapress\CRUD\Services\CRUD\ICRUDVerb::SHOW => \Larapress\CRUD\Services\CRUD\Verbs\Show::class,
+        \Larapress\CRUD\Services\CRUD\ICRUDVerb::EXPORT => \Larapress\CRUD\Services\CRUD\Verbs\Export::class,
+        \Larapress\CRUD\Services\CRUD\ICRUDVerb::DELETE => \Larapress\CRUD\Services\CRUD\Verbs\Destroy::class,
+        \Larapress\CRUD\Services\CRUD\ICRUDVerb::REPORTS => \Larapress\CRUD\Services\CRUD\Verbs\Reports::class,
     ],
 
     /**
@@ -69,18 +58,6 @@ return [
     ],
 
     /**
-     * Customize Larapress-CRUD routes
-     */
-    'routes' => [
-        'roles' => [
-            'name' => 'roles',
-        ],
-        'groups' => [
-            'name' => 'groups',
-        ],
-    ],
-
-    /**
      * Add prefix to all CRUD routes
      */
     'prefix' => 'api',
@@ -102,4 +79,43 @@ return [
         'en' => \Larapress\CRUD\Translation\Lang\Roman::class,
         'fa' => \Larapress\CRUD\Translation\Lang\Persian::class,
     ],
+
+
+    /**
+     * crud resources of the package
+     */
+    'routes' => [
+        'roles' => [
+            'name' => 'roles',
+            'model' => \Larapress\CRUD\Models\Role::class,
+            'provider' => \Larapress\CRUD\CRUD\RoleCRUDProvider::class,
+        ],
+    ],
+
+    /**
+     * All CRUD Controllers to register
+     */
+    'controllers' => [
+        \Larapress\CRUD\Controllers\RoleController::class,
+        // 'include::larapress.reports.controllers',
+        // 'include::larapress.notifications.controllers',
+        // 'include::larapress.profiles.controllers',
+        // 'include::larapress.ecommerce.controllers',
+        // 'include::larapress.pages.controllers',
+    ],
+
+    /**
+     * All CRUDProviders to be loaded
+     * this dictates the permissions available
+     */
+    'permissions' => [
+        \Larapress\CRUD\CRUD\RoleCRUDProvider::class,
+        \Larapress\CRUD\CRUD\SystemAppPermissions::class,
+        // 'include::larapress.reports.permissions',
+        // 'include::larapress.notifications.permissions',
+        // 'include::larapress.profiles.permissions',
+        // 'include::larapress.ecommerce.permissions',
+        // 'include::larapress.pages.permissions',
+    ],
+
 ];

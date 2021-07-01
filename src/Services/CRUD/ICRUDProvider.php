@@ -5,222 +5,190 @@ namespace Larapress\CRUD\Services\CRUD;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 
 /**
  * Interface ICRUDProvider.
  */
-interface ICRUDProvider
+interface ICRUDProvider extends IPermissionsMetadata
 {
     /**
      * @return string
      */
-    public function getModelClass();
-
-    /**
-     * Undocumented function
-     *
-     * @return IReportSource[]
-     */
-    public function getReportSources();
-
-    /**
-     * @return bool
-     */
-    public function shouldFilterRequestParamsByRules();
-
-    /**
-     * @return array
-     */
-    public function getValidRelations();
-
-    /**
-     * @return array
-     */
-    public function getValidSortColumns();
-
-    /**
-     * @return array
-     */
-    public function getSearchableColumns();
-
-    /**
-     * @return array
-     */
-    public function getFilterFields();
-
-    /**
-     * @return array
-     */
-    public function getFilterDefaultValues();
-
-    /**
-     * @return array
-     */
-    public function getAutoSyncRelations();
-
-    /**
-     * @return array
-     */
-    public function getAutoCountRelations();
-
-    /**
-     * @return array
-     */
-    public function getEagerRelations();
-
-    /**
-     * @return array
-     */
-    public function getExcludeIfNull();
-
-    /**
-     * @return array
-     */
-    public function getSummerizableColumns();
-
-    /**
-     * Undocumented function
-     *
-     * @param Request $request
-     * @return array
-     */
-    public function getCreateRules(Request $request);
-
-    /**
-     * @param Request $request
-     * @return array
-     */
-    public function getUpdateRules(Request $request);
-
-    /**
-     * @return array
-     */
-    public function getDeleteCascades();
-
-    /**
-     * Undocumented function
-     *
-     * @param mixed $object
-     * @return array
-     */
-    public function getExportArray($object);
-
-    /**
-     * @param Builder $query
-     *
-     * @return Builder
-     */
-    public function onBeforeQuery($query);
-
-    /**
-     * @param array $args
-     *
-     * @return array
-     */
-    public function onBeforeFilter($args);
-
-    /**
-     * @param array $args
-     *
-     * @return array
-     */
-    public function onBeforeCreate($args);
-
-    /**
-     * @param $object
-     *
-     * @return bool
-     */
-    public function onBeforeAccess($object);
-
-    /**
-     * @param object $object
-     * @param array  $input_data
-     *
-     * @return array
-     */
-    public function onAfterCreate($object, $input_data);
-
-    /**
-     * @param array $args
-     *
-     * @return array
-     */
-    public function onBeforeUpdate($args);
-
-    /**
-     * @param $object
-     * @param array $args
-     *
-     * @return array
-     */
-    public function onBeforeObjectUpdate($object, $args);
-
-    /**
-     * @param object $object
-     * @param array  $input_data
-     *
-     * @return array
-     */
-    public function onAfterUpdate($object, $input_data);
-
-    /**
-     * @param $object
-     */
-    public function onAfterDestroy($object);
-
-    /**
-     * @param $object
-     *
-     * @return bool
-     */
-    public function onBeforeDestroy($object);
-
-    /**
-     * @param $object
-     *
-     * @return bool
-     */
-    public function onBeforeDestroyCascades($object);
-
-    /**
-     * @param $object
-     */
-    public function onAfterDestroyCascades($object);
-
-    /**
-     * @param Model $model
-     *
-     * @return Model|array
-     */
-    public function onShowModel($model);
+    public function getModelClass(): string;
 
     /**
      * @param $id
      *
      * @return Model|null
      */
-    public function getObjectFromID($id);
+    public function getObjectFromID(int $id);
 
     /**
      * @return bool
      */
-    public function isExportable();
+    public function shouldFilterRequestParamsByRules(): bool;
+
+    /**
+     * Undocumented function
+     *
+     * @return string[]
+     */
+    public function getCompositionClasses(): array;
+
+    /**
+     * Undocumented function
+     *
+     * @return ICRUDReportSource[]
+     */
+    public function getReportSources(): array;
+
+    /**
+     * @return array
+     */
+    public function getValidRelations(): array;
+
+    /**
+     * @return array
+     */
+    public function getValidSortColumns(): array;
+
+    /**
+     * @return array
+     */
+    public function getSearchableColumns(): array;
+
+    /**
+     * @return array
+     */
+    public function getFilterFields(): array;
+
+    /**
+     * @return array
+     */
+    public function getEagerRelations(): array;
+
+    /**
+     * Undocumented function
+     *
+     * @param Request $request
+     * @return array
+     */
+    public function getCreateRules(Request $request): array;
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function getUpdateRules(Request $request): array;
+
+    /**
+     * @param Builder $query
+     *
+     * @return Builder
+     */
+    public function onBeforeQuery(Builder $query): Builder;
+
+    /**
+     * @param array $args
+     *
+     * @return array
+     */
+    public function onBeforeFilter(array $args): array;
+
+    /**
+     * @param array $args
+     *
+     * @return array
+     */
+    public function onBeforeCreate(array $args): array;
 
     /**
      * @param $object
      *
-     * @return array|null
+     * @return bool
      */
-    public function getExportMap($object);
+    public function onBeforeAccess($object): bool;
 
     /**
-     * @return array|null
+     * @param object $object
+     * @param array  $input_data
+     *
+     * @return void
      */
-    public function getExportColumnTypes();
+    public function onAfterCreate($object, array $input_data): void;
 
     /**
-     * @return array|null
+     * @param array $args
+     *
+     * @return array
      */
-    public function getExportHeaders();
+    public function onBeforeUpdate(array $args): array;
+
+    /**
+     * @param $object
+     * @param array $args
+     *
+     * @return array
+     */
+    public function onBeforeObjectUpdate($object, array $args): array;
+
+    /**
+     * @param object $object
+     * @param array  $input_data
+     *
+     * @return void
+     */
+    public function onAfterUpdate($object, array $input_data): void;
+
+    /**
+     * @param $object
+     *
+     * @return void
+     */
+    public function onAfterDestroy($object): void;
+
+    /**
+     * @param $object
+     *
+     * @return bool
+     */
+    public function onBeforeDestroy($object): bool;
+
+    /**
+     * @param mixed $model
+     *
+     * @return Model|array
+     */
+    public function onShowModel($model);
+
+    /**
+     * Undocumented function
+     *
+     * @param $object
+     * @return array
+     */
+    public function getExportArray($object): array;
+
+    /**
+     * @return bool
+     */
+    public function isExportable(): bool;
+
+    /**
+     * @param $object
+     *
+     * @return array
+     */
+    public function getExportMap($object): array;
+
+    /**
+     * @return array
+     */
+    public function getExportColumnTypes(): array;
+
+    /**
+     * @return array
+     */
+    public function getExportHeaders(): array;
 }

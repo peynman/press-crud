@@ -28,7 +28,7 @@ class UserFactory extends Factory {
                                 ?Collection $afterCreating = null,
                                 $connection = null)
     {
-        $this->model = config('larapress.crud.user.class');
+        $this->model = config('larapress.crud.user.model');
         parent::__construct($count, $states, $has, $for, $afterMaking, $afterCreating, $connection);
     }
 

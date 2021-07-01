@@ -31,21 +31,22 @@ class ValidationException extends AppException
     public function render(Request $request)
     {
         if ($request->wantsJson()) {
-            $error = config('app.debug') ? [
+            $error = [
                 'message' => $this->getMessage(),
-                'exception' => get_class($this),
-                'file' => $this->getFile(),
-                'line' => $this->getLine(),
-                'trace' => collect($this->getTrace())->map(function ($trace) {
-                    return Arr::except($trace, ['args']);
-                })->all(),
                 'code' => $this->getErrorCode(),
-                'validations' => $this->getValidations()->getMessageBag()->toArray(),
-            ] : [
-                'code' => $this->getErrorCode(),
-                'message' => $this->getMessage(),
                 'validations' => $this->getValidations()->getMessageBag()->toArray(),
             ];
+
+            if (config('app.debug')) {
+                $error = array_merge($error, [
+                    'exception' => get_class($this),
+                    'file' => $this->getFile(),
+                    'line' => $this->getLine(),
+                    'trace' => collect($this->getTrace())->map(function ($trace) {
+                        return Arr::except($trace, ['args']);
+                    })->all(),
+                ]);
+            }
 
             if (!is_null($this->appendToResponse)) {
                 $error = array_merge($error, $this->appendToResponse);

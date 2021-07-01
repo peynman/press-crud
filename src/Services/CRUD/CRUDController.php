@@ -17,18 +17,17 @@ use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 /**
  * Used by any resource that needs CRUD end points.
  *
- * Class BaseCRUDController
+ * Class CRUDController
  */
-abstract class BaseCRUDController extends Controller
+abstract class CRUDController extends Controller
 {
     protected $crudService;
 
     /**
-     * BaseCRUDController constructor.
+     * CRUDController constructor.
      * extend the constructor and call $service->useProvide() to set your crud resource.
      *
      * @param ICRUDService $service
-     * @param \Larapress\CRUD\Services\CRUD\ICRUDFilterStorage $filterStorage
      * @param \Larapress\CRUD\Services\CRUD\ICRUDExporter $crudExporter
      * @param \Illuminate\Http\Request $request
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
@@ -67,14 +66,14 @@ abstract class BaseCRUDController extends Controller
      * @bodyParam with[].name string required relation name to include. Example: author
      * @bodyParam with[].columns string relation columns to include. Example: id,name,data
      *
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return Response
      *
      * @throws AppException
      * @throws \Exception
      */
     public function query(Request $request)
     {
-        return $this->crudService->query($request);
+        return $this->crudService->handle(ICRUDVerb::VIEW, $request);
     }
 
     /**
@@ -82,7 +81,7 @@ abstract class BaseCRUDController extends Controller
      *
      * @param  Request $request
      *
-     * @return Response
+     * @return \Illuminate\Http\Response
      *
      * @throws ValidationException
      * @throws AppException
@@ -90,7 +89,7 @@ abstract class BaseCRUDController extends Controller
      */
     public function store(Request $request)
     {
-        $object = $this->crudService->store($request);
+        $object = $this->crudService->handle(ICRUDVerb::CREATE, $request);
         return response()->json([
             'message' => trans('larapress::crud.create_success', ['id' => $object->id]),
             'object' => $object,
@@ -103,11 +102,11 @@ abstract class BaseCRUDController extends Controller
      * @param \Illuminate\Http\Request $request
      * @urlParam id int required The id of the resource to show details of
      *
-     * @return Response
+     * @return \Illuminate\Http\Response
      */
     public function show(Request $request, $id)
     {
-        return response()->json($this->crudService->show($request, $id));
+        return response()->json($this->crudService->handle(ICRUDVerb::SHOW, $request, $id));
     }
 
     /**
@@ -123,7 +122,7 @@ abstract class BaseCRUDController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $object = $this->crudService->update($request, $id);
+        $object = $this->crudService->handle(ICRUDVerb::EDIT, $request, $id);
         return response()->json([
             'message' => trans('larapress::crud.create_success', ['id' => $object->id]),
             'object' => $object,
@@ -140,7 +139,11 @@ abstract class BaseCRUDController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        return $this->crudService->destroy($request, $id);
+        $object = $this->crudService->handle(ICRUDVerb::DELETE, $request, $id);
+        return response()->json([
+            'message' => trans('larapress::crud.remove_success', ['id' => $id]),
+            'object' => $object
+        ]);
     }
 
 
@@ -153,7 +156,7 @@ abstract class BaseCRUDController extends Controller
      */
     public function reports(Request $request)
     {
-        return $this->crudService->reports($request);
+        return $this->crudService->handle(ICRUDVerb::REPORTS, $request);
     }
 
     /**
@@ -165,7 +168,7 @@ abstract class BaseCRUDController extends Controller
      */
     public function export(Request $request)
     {
-        return $this->crudService->export($request);
+        return $this->crudService->handle(ICRUDVerb::EXPORT, $request);
     }
 
     /**
@@ -183,37 +186,32 @@ abstract class BaseCRUDController extends Controller
         $pro = new $provider();
         $avVerbs = $pro->getPermissionVerbs();
         $verbs = [];
-        if (in_array(IPermissionsMetadata::CREATE, $avVerbs)) {
-            $verbs[IPermissionsMetadata::CREATE] = [
+        if (in_array(ICRUDVerb::CREATE, $avVerbs)) {
+            $verbs[ICRUDVerb::CREATE] = [
                 'methods' => ['POST'],
                 'url' => $name,
                 'uses' => $controller.'@store',
             ];
         }
-        if (in_array(IPermissionsMetadata::DELETE, $avVerbs)) {
-            $verbs[IPermissionsMetadata::DELETE] = [
+        if (in_array(ICRUDVerb::DELETE, $avVerbs)) {
+            $verbs[ICRUDVerb::DELETE] = [
                 'methods' => ['DELETE'],
                 'url' => $name.'/{id}',
                 'uses' => $controller.'@destroy',
             ];
         }
-        if (in_array(IPermissionsMetadata::EDIT, $avVerbs)) {
-            $verbs[IPermissionsMetadata::EDIT] = [
+        if (in_array(ICRUDVerb::EDIT, $avVerbs)) {
+            $verbs[ICRUDVerb::EDIT] = [
                 'methods' => ['PUT'],
                 'url' => $name.'/{id}',
                 'uses' => $controller.'@update',
             ];
         }
-        if (in_array(IPermissionsMetadata::VIEW, $avVerbs)) {
+        if (in_array(ICRUDVerb::VIEW, $avVerbs)) {
             $verbs['query'] = [
                 'methods' => ['POST'],
                 'url' => $name.'/query',
                 'uses' => $controller.'@query',
-            ];
-            $verbs['export'] = [
-                'methods' => ['POST'],
-                'url' => $name.'/export',
-                'uses' => $controller.'@export',
             ];
             $verbs['show'] = [
                 'methods' => ['GET'],
@@ -221,7 +219,14 @@ abstract class BaseCRUDController extends Controller
                 'uses' => $controller.'@show',
             ];
         }
-        if (in_array(IPermissionsMetadata::REPORTS, $avVerbs)) {
+        if (in_array(ICRUDVerb::EXPORT, $avVerbs)) {
+            $verbs['export'] = [
+                'methods' => ['POST'],
+                'url' => $name.'/export',
+                'uses' => $controller.'@export',
+            ];
+        }
+        if (in_array(ICRUDVerb::REPORTS, $avVerbs)) {
             $verbs['reports'] = [
                 'methods' => ['POST'],
                 'url' => $name.'/reports',

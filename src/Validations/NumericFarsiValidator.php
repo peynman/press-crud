@@ -3,15 +3,14 @@
 namespace Larapress\CRUD\Validations;
 
 use Illuminate\Support\Facades\Validator;
+use Larapress\CRUD\Extend\Helpers;
 
 class NumericFarsiValidator
 {
     public static function register()
     {
         Validator::extend('numeric_farsi', function ($attributes, $values, $parameters, $validator) {
-            $values = Helpers::enNumbers($values);
-
-            return is_numeric($values);
+            return is_numeric(Helpers::safeLatinNumbers($values));
         });
     }
 }

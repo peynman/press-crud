@@ -43,7 +43,7 @@ abstract class PackageTestApplication extends TestCase
      */
     public function getUserQuery(): Builder
     {
-        $class = config('larapress.crud.user.class');
+        $class = config('larapress.crud.user.model');
         return call_user_func([$class, 'query']);
     }
 
@@ -66,7 +66,7 @@ abstract class PackageTestApplication extends TestCase
     {
         $user = $this->getUserQuery()->where('name', $username)->first();
         if (is_null($user)) {
-            $class = config('larapress.crud.user.class');
+            $class = config('larapress.crud.user.model');
             $user = call_user_func([$class, 'create'], [
                 'name' => $username,
                 'password' => Hash::make($password),
@@ -103,7 +103,7 @@ abstract class PackageTestApplication extends TestCase
     protected function getAuthorizationToken($user)
     {
         if (is_numeric($user)) {
-            $user = call_user_func([config('larapress.crud.user.class'), 'find'], $user);
+            $user = call_user_func([config('larapress.crud.user.model'), 'find'], $user);
         }
         if (!isset($this->userTokens[$user->id])) {
             $guards = config('auth.guards');

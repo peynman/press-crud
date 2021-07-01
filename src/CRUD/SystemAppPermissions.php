@@ -12,7 +12,7 @@ class SystemAppPermissions implements IPermissionsMetadata
      *
      * @return array
      */
-    public function getPermissionVerbs()
+    public function getPermissionVerbs(): array
     {
         return config('larapress.crud.app_permissions');
     }
@@ -22,7 +22,7 @@ class SystemAppPermissions implements IPermissionsMetadata
      *
      * @return string
      */
-    public function getPermissionObjectName()
+    public function getPermissionObjectName(): string
     {
         return 'app';
     }

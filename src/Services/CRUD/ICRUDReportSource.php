@@ -1,6 +1,7 @@
 <?php
 
 namespace Larapress\CRUD\Services\CRUD;
+use Larapress\CRUD\ICRUDUser;
 
 interface ICRUDReportSource
 {
@@ -8,18 +9,19 @@ interface ICRUDReportSource
     /**
      * Undocumented function
      *
-     * @param [type] $user
+     * @param ICRUDUser $user
      * @return array
      */
-    public function getReportNames($user);
+    public function getReportNames(ICRUDUser $user);
 
     /**
      * Undocumented function
      *
-     * @param [type] $user
+     * @param ICRUDUser $user
      * @param string $name
      * @param array $options
+     *
      * @return array
      */
-    public function getReport($user, string $name, array $options = []);
+    public function getReport(ICRUDUser $user, string $name, array $options = []);
 }

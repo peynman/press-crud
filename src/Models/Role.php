@@ -65,7 +65,7 @@ class Role extends Model
     public function users()
     {
         return $this->belongsToMany(
-            config('larapress.crud.user.class'),
+            config('larapress.crud.user.model'),
             'user_role',
             'role_id',
             'user_id'

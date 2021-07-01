@@ -52,7 +52,7 @@ class PermissionsService implements IPermissionsService
         $super_role->permissions()->sync($permission_ids);
 
         /** @var Builder $user_query */
-        $user_query = call_user_func([config('larapress.crud.user.class'), 'query']);
+        $user_query = call_user_func([config('larapress.crud.user.model'), 'query']);
         /** @var ICRUDUser[] $super_users */
         $super_users = $user_query->whereHas(
             'roles',
@@ -60,6 +60,7 @@ class PermissionsService implements IPermissionsService
                 $q->where('name', 'super-role');
             }
         )->get();
+
         return $super_users;
     }
 
@@ -84,12 +85,12 @@ class PermissionsService implements IPermissionsService
     public function createSuperUser($username, $password)
     {
         /** @var Builder $user_quer */
-        $user_quer = call_user_func([config('larapress.crud.user.class'), 'query']);
+        $user_quer = call_user_func([config('larapress.crud.user.model'), 'query']);
         /** @var \Larapress\CRUD\ICRUDUser $user */
         $user = $user_quer->where('name', $username)->first();
 
         if (is_null($user)) {
-            $user = call_user_func([config('larapress.crud.user.class'), 'create'], [
+            $user = call_user_func([config('larapress.crud.user.model'), 'create'], [
                 'name' => $username,
                 'password' => Hash::make($password),
             ]);

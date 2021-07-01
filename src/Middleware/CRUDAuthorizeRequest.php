@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 use Larapress\CRUD\ICRUDUser;
+use Larapress\CRUD\Services\CRUD\ICRUDVerb;
 
 class CRUDAuthorizeRequest
 {
@@ -62,22 +63,22 @@ class CRUDAuthorizeRequest
             case 'query':
             case 'view':
             case 'export':
-                $required_permissions[] = $name.'.'.IPermissionsMetadata::VIEW;
+                $required_permissions[] = $name.'.'.ICRUDVerb::VIEW;
                 break;
             case 'store':
             case 'create':
-                $required_permissions[] = $name.'.'.IPermissionsMetadata::CREATE;
+                $required_permissions[] = $name.'.'.ICRUDVerb::CREATE;
                 break;
             case 'edit':
             case 'update':
-                $required_permissions[] = $name.'.'.IPermissionsMetadata::EDIT;
+                $required_permissions[] = $name.'.'.ICRUDVerb::EDIT;
                 break;
             case 'delete':
             case 'destroy':
-                $required_permissions[] = $name.'.'.IPermissionsMetadata::DELETE;
+                $required_permissions[] = $name.'.'.ICRUDVerb::DELETE;
                 break;
             case 'reports':
-                $required_permissions[] = $name.'.'.IPermissionsMetadata::REPORTS;
+                $required_permissions[] = $name.'.'.ICRUDVerb::REPORTS;
                 break;
             case 'any':
             case 'custom':

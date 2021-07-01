@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\ICRUDUser;
 
-class BaseCRUDBroadcast implements ICRUDBroadcast
+class CRUDBroadcast implements ICRUDBroadcast
 {
     /**
      * Undocumented function
@@ -49,7 +49,7 @@ class BaseCRUDBroadcast implements ICRUDBroadcast
     public function authorizeForCRUDChannel(ICRUDUser $user, $name, $verb)
     {
         if (!is_null($user) &&
-            $user->hasRole(config('larapress.profiles.security.roles.super-role')) &&
+            $user->hasRole(config('larapress.profiles.security.roles.super_role')) &&
             $user->hasPermission([$name . '.' . $verb])
         ) {
             return true;

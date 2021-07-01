@@ -59,12 +59,12 @@ class CreateSuperUser extends Command
     public static function updateSuperUserWithData($form)
     {
         /** @var Builder $user_quer */
-        $user_quer = call_user_func([config('larapress.crud.user.class'), 'query']);
+        $user_quer = call_user_func([config('larapress.crud.user.model'), 'query']);
         /** @var \Larapress\CRUD\ICRUDUser $user */
         $user = $user_quer->where('name', $form['name'])->first();
 
         if (is_null($user)) {
-            $user = call_user_func([config('larapress.crud.user.class'), 'create'], [
+            $user = call_user_func([config('larapress.crud.user.model'), 'create'], [
                 'name' => $form['name'],
                 'password' => Hash::make($form['password']),
             ]);

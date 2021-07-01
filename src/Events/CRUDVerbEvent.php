@@ -11,7 +11,8 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
-use Larapress\Profiles\IProfileUser;
+use Larapress\CRUD\ICRUDUser;
+use Larapress\CRUD\Services\CRUD\ICRUDService;
 
 /**
  * Class CreatedEvent.
@@ -51,7 +52,7 @@ class CRUDVerbEvent implements ShouldBroadcast
      * @param string $providerClass
      * @param Carbon $timestamp
      */
-    public function __construct($user, $model, string $providerClass, Carbon $timestamp, $verb)
+    public function __construct($user, $model, string $providerClass, Carbon $timestamp, string $verb)
     {
         if (is_null($user)) {
             $this->userId = null;
@@ -79,7 +80,9 @@ class CRUDVerbEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('crud.'.$this->getProvider()->getPermissionObjectName().'.'.$this->verb);
+        /** @var IPermissionsMetadata */
+        $provider = $this->getProvider();
+        return new PrivateChannel('crud.'.$provider->getPermissionObjectName().'.'.$this->verb);
     }
 
     /**
@@ -101,7 +104,7 @@ class CRUDVerbEvent implements ShouldBroadcast
     /**
      * Undocumented function
      *
-     * @return IProfileUser
+     * @return ICRUDUser
      */
     public function getUser()
     {
@@ -109,7 +112,7 @@ class CRUDVerbEvent implements ShouldBroadcast
             return null;
         }
 
-        return call_user_func([config('larapress.crud.user.class'), "find"], $this->userId);
+        return call_user_func([config('larapress.crud.user.model'), "find"], $this->userId);
     }
 
     /**
@@ -117,7 +120,11 @@ class CRUDVerbEvent implements ShouldBroadcast
      */
     public function getProvider(): ICRUDProvider
     {
-        $class = $this->data['provider'];
-        return new $class;
+        /** @var ICRUDService */
+        $crudService = app(ICRUDService::class);
+        $providerClass = new $this->providerClass;
+        $provider = new $providerClass;
+        $crudService->useProvider($provider);
+        return $crudService->getCompositeProvider();
     }
 }

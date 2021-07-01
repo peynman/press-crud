@@ -2,11 +2,8 @@
 
 namespace Larapress\CRUD\Services\CRUD;
 
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Larapress\Core\Exceptions\AppException;
-use Larapress\Core\Exceptions\ValidationException;
 
 interface ICRUDService
 {
@@ -26,94 +23,57 @@ interface ICRUDService
     public function useCRUDExporter(ICRUDExporter $exporter);
 
     /**
-     * Search the in the resources.
+     * Undocumented function
      *
-     * @param Request $request
-     *
-     * @return LengthAwarePaginator
-     * @throws AppException
-     * @throws \Exception
+     * @param ICRUDVerb $verb
+     * @return void
      */
-    public function query(Request $request);
-
+    public function addCRUDVerb(ICRUDVerb $verb);
 
     /**
      * Undocumented function
      *
-     * @param Request $request
-     * @return [Builder, int]
-     * @throws AppException
-     * @throws \Exception
+     * @return ICRUDProvider
      */
-    public function buildQueryForRequest(Request $request, $onBeforeQuery = null);
-
+    public function getCompositeProvider(): ICRUDProvider;
 
     /**
      * Undocumented function
      *
-     * @param Builder $query
-     * @param array $availableFilters
-     * @param array $query_params
-     * @return boolean
+     * @return ICRUDStorage
      */
-    public function addFiltersToQuery($query, $availableFilters, $query_params);
+    public function getStorage(): ICRUDStorage;
 
     /**
-     * Store a newly created resource in storage.
+     * Undocumented function
      *
+     * @return ICRUDExporter
+     */
+    public function getExporter(): ICRUDExporter;
+
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
+    public function getCRUDVerbs();
+
+    /**
+     * Undocumented function
+     *
+     * @param string|ICRUDProvider $provider
+     * @return ICRUDProvider
+     */
+    public function makeCompositeProvider($provider): ICRUDProvider;
+
+    /**
+     * Undocumented function
+     *
+     * @param string $verb
      * @param Request $request
-     *
-     * @return \Illuminate\Database\Eloquent\Model|Response
-     * @throws ValidationException
-     * @throws AppException
-     * @throws \Exception
-     */
-    public function store(Request $request);
-
-    /**
-     * Display this specified resource.
-     *
-     * @param Request $request
-     * @param string  $id
-     *
-     * @return \Illuminate\Database\Eloquent\Model|Response
-     */
-    public function show(Request $request, $id);
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param int     $id
-     *
-     * @return Response|\Illuminate\Database\Eloquent\Model
-     * @throws ValidationException
-     * @throws AppException
-     * @throws \Exception
-     */
-    public function update(Request $request, $id);
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
+     * @param array $args
      *
      * @return Response
      */
-    public function destroy(Request $request, $id);
-
-    /**
-     * @param Request $request
-     *
-     * @return Response
-     */
-    public function reports(Request $request);
-
-    /**
-     * @param Request $request
-     *
-     * @return Response
-     */
-    public function export(Request $request);
+    public function handle(string $verb, Request $request, ...$args);
 }

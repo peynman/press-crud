@@ -24,5 +24,6 @@ return [
         AppException::ERR_REJECTED_RESULT => 'مشکلی از سمت سامانه پذیرنده پیش آمد. لطفا بعدا تلاش کنید',
         AppException::ERR_USER_HAS_NO_DOMAIN => 'دامنه‌ای برای کاربر ثبت نشده است',
         AppException::ERR_GIFT_LOCKED_TO_SUPPORT => 'کد تخفیف مخصوص کاربران گروه های خاص است',
+        AppException::ERR_INVALID_VERB => 'فعل مورد نظر یافت نشد',
     ],
 ];

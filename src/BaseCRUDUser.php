@@ -46,6 +46,7 @@ trait BaseCRUDUser
 
     /**
      * Check if user has permission or not.
+     *
      * @param string|int|Permission|string[]|int[]|Permission[] $permissions
      *
      * @return bool
@@ -64,7 +65,7 @@ trait BaseCRUDUser
     }
 
     /**
-     * @param string|string[] $roles
+     * @param string|string[]|int|int[] $roles
      *
      * @return bool
      */
@@ -121,11 +122,12 @@ trait BaseCRUDUser
     {
         return Helpers::getCachedValue(
             'larapress.users.'.$this->id.'.roles.highest',
+            ['user.permissions:'.$this->id],
+            86400,
+            true,
             function () {
                 return $this->roles()->orderBy('priority', 'DESC')->first();
             },
-            ['user.permissions:'.$this->id],
-            null
         );
     }
 
@@ -172,10 +174,12 @@ trait BaseCRUDUser
 
         $this->cachedRoles = Helpers::getCachedValue(
             'larapress.users.'.$this->id.'.roles.all',
+            ['user.permissions:'.$this->id],
+            86400,
+            true,
             function () {
                 return $this->roles()->with('permissions')->get()->toArray();
             },
-            ['user.permissions:'.$this->id],
             null
         );
 
@@ -194,6 +198,6 @@ trait BaseCRUDUser
      */
     public function forgetPermissionsCache()
     {
-        Cache::tags(['user.permissions:'.$this->id])->flush();
+        Helpers::forgetCachedValues(['user.permissions:'.$this->id]);
     }
 }
