@@ -69,7 +69,7 @@ class Update implements ICRUDVerb {
         if (is_null($object)) {
             throw new AppException(AppException::ERR_OBJECT_NOT_FOUND);
         }
-        $with = $crudProvider->getEagerRelations();
+        $with = $crudProvider->getDefaultShowRelations();
         if (!is_null($with)) {
             $object->load($with);
         }

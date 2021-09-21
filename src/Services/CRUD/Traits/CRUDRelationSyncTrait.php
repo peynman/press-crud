@@ -47,25 +47,28 @@ trait CRUDRelationSyncTrait
      * @param Model $object
      * @param array $data
      */
-    protected function syncBelongsToManyRelation($relation, $object, $data, $callback = null, $attributes = null)
-    {
+    protected function syncBelongsToManyRelation(
+        $relation,
+        $object,
+        $data,
+        $canBeAttachedCallback = null,
+        $generateAttributeCallback = null,
+        $getIdCallback = null
+    ) {
         if (!empty($data[$relation])) {
             $ids = [];
             foreach ($data[$relation] as $datum) {
-                if (is_null($callback)) {
-                    if (is_null($attributes)) {
-                        $ids[] = $datum['id'];
-                    } else {
-                        $ids[$datum['id']] = $attributes($datum);
+                if (!is_null($canBeAttachedCallback)) {
+                    if (!$canBeAttachedCallback($datum)) {
+                        continue;
                     }
+                }
+
+                $id = is_null($getIdCallback) ? $datum : $getIdCallback($datum);
+                if (is_null($generateAttributeCallback)) {
+                    $ids[] = $id;
                 } else {
-                    if ($callback($datum)) {
-                        if (is_null($attributes)) {
-                            $ids[] = $datum['id'];
-                        } else {
-                            $ids[$datum['id']] = $attributes($datum);
-                        }
-                    }
+                    $ids[$id] = $generateAttributeCallback($datum);
                 }
             }
 

@@ -11,6 +11,7 @@ use Larapress\CRUD\Services\CRUD\ICRUDVerb;
 use Larapress\CRUD\ICRUDUser;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Larapress\CRUD\Services\Pagination\PaginatedResponse;
 
 class Query implements ICRUDVerb
 {
@@ -31,7 +32,7 @@ class Query implements ICRUDVerb
      * @param Request $request
      * @param ...$args
      *
-     * @return mixed
+     * @return PaginatedResponse
      */
     public function handle(ICRUDService $service, Request $request, ...$args)
     {
@@ -43,14 +44,14 @@ class Query implements ICRUDVerb
 
         $qResult = $this->getQueryFromRequest($user, $service, $qRequest);
 
-        return self::formatPaginatedResponse(
+        return new PaginatedResponse(
             new LengthAwarePaginator(
                 $qResult->getItems(),
                 $qResult->getQueryTotal(),
                 $qResult->perPage,
                 $qResult->currentPage,
             ),
-            $request->get('ref_id')
+            $request->get('refId', 1)
         );
     }
 
@@ -119,14 +120,14 @@ class Query implements ICRUDVerb
         }
 
         // apply pagination
-        $paginate_from = max(0, intval($request->get('page', 1)) - 1);
+        $paginate_from = max(0, intval($request->get('page', 1) - 1));
         $limit = $request->get('limit', 10);
 
         // for records more than 100, find current page id and filter with that
         if ($total > 100) {
             $offset = $cq->skip($paginate_from * $limit)->first();
             if (!is_null($offset)) {
-                $query->where('id', '<=', $offset->id);
+                $query->where('id', '>=', $offset->id);
             }
             $query->take($limit);
         } else {
@@ -137,26 +138,8 @@ class Query implements ICRUDVerb
         return new QueryFilterResult(
             $query,
             $total,
-            $paginate_from,
+            $paginate_from + 1,
             $limit,
         );
-    }
-
-    /**
-     * @param LengthAwarePaginator $paginate
-     *
-     * @return array
-     */
-    public static function formatPaginatedResponse($paginate, $refId = null)
-    {
-        return [
-            'data' => $paginate->items(),
-            'total' => $paginate->total(),
-            'from' => $paginate->firstItem(),
-            'to' => $paginate->lastItem(),
-            'current_page' => $paginate->currentPage(),
-            'per_page' => $paginate->perPage(),
-            'ref_id' => $refId,
-        ];
     }
 }

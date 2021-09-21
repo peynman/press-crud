@@ -2,9 +2,12 @@
 
 namespace Larapress\CRUD\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Services\RBAC\IPermissionsService;
+use Illuminate\Support\Str;
 
 class UpdatePermissions extends Command
 {
@@ -45,10 +48,20 @@ class UpdatePermissions extends Command
             /** @var IPermissionsMetadata $instance */
             $instance = new $meta_data_class();
             $all_verbs = $instance->getPermissionVerbs();
-            foreach ($all_verbs as $verb_name) {
+            foreach ($all_verbs as $verb => $meta) {
+                if (is_string($meta)) {
+                    $verb_name = $meta;
+                } else {
+                    $verb_name = $verb;
+                }
+
+                if (Str::contains($verb_name, '.')) {
+                    continue;
+                }
+
                 $this->info($instance->getPermissionObjectName().' -> '.$verb_name.' ['.class_basename($instance).']');
                 if (is_null($instance->getPermissionObjectName())) {
-                    dd($instance);
+                    throw new Exception("Provider doeas not have valid name: ". $meta_data_class);
                 }
                 /* @var Permission $model */
                 Permission::firstOrCreate([
@@ -58,6 +71,7 @@ class UpdatePermissions extends Command
             }
         });
         $service->updateSuperRole();
+        Artisan::call('cache:clear');
         $this->info('Super-Role updated with latest permissions, all users with super-role are updated too.');
 
         return 0;

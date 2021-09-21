@@ -97,9 +97,9 @@ class CRUDProviderComposition implements ICRUDProvider
     /**
      * @return array
      */
-    public function getEagerRelations(): array
+    public function getDefaultShowRelations(): array
     {
-        return $this->sourceProvider->getEagerRelations();
+        return $this->sourceProvider->getDefaultShowRelations();
     }
 
     /**

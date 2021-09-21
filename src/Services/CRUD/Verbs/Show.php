@@ -36,13 +36,13 @@ class Show implements ICRUDVerb {
          * @var Builder
          */
         $query = call_user_func([$crudProvider->getModelClass(), 'query']);
-        $with = $crudProvider->getEagerRelations();
+        $with = $crudProvider->getDefaultShowRelations();
         if (!is_null($with)) {
             $query->with($with);
         }
         $model = $query->find($id);
 
-        if (!$this->crudProvider->onBeforeAccess($model)) {
+        if (!$crudProvider->onBeforeAccess($model)) {
             throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
         }
 

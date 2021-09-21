@@ -4,6 +4,7 @@ namespace Larapress\CRUD\Services\CRUD;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\ICRUDUser;
 
@@ -21,13 +22,10 @@ class CRUDBroadcast implements ICRUDBroadcast
         $user = Auth::user();
         if ($request->get('channel_name', null) === 'presence-website' || !is_null($user)) {
             if (!is_null($user)) {
-                $hRole = $user->getUserHighestRole();
-
                 return [
                     'channel_data' => [
                         'user_id' => $user->id,
                         'user_info' => $user->name,
-                        'user_role' => $hRole->name,
                     ],
                 ];
             }

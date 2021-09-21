@@ -16,7 +16,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  * @property string $name
  * @property string $title
  * @property int $priority
+ * @property int $author_id
  * @property Permission[] $permissions
+ * @property ICRUDUser $author
  * @property ICRUDUser[] $users
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
@@ -33,8 +35,8 @@ class Role extends Model
         'name',
         'title',
         'priority',
+        'author_id',
     ];
-
 
     /**
      * Undocumented function
@@ -70,5 +72,14 @@ class Role extends Model
             'role_id',
             'user_id'
         );
+    }
+
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function author()
+    {
+        return $this->belongsTo(config('larapress.crud.user.model'), 'author_id');
     }
 }

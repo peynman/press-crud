@@ -3,6 +3,7 @@
 namespace Larapress\CRUD\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Larapress\CRUD\Commands\CreateCRUDJSON;
 use Larapress\CRUD\Commands\CreateSuperUser;
 use Larapress\CRUD\Services\RBAC\IPermissionsService;
 use Larapress\CRUD\Services\CRUD\CRUDService;
@@ -12,11 +13,13 @@ use Larapress\CRUD\Repository\IPermissionsRepository;
 use Larapress\CRUD\Repository\IRoleRepository;
 use Larapress\CRUD\Repository\PermissionsRepository;
 use Larapress\CRUD\Repository\RoleRepository;
-use Larapress\CRUD\Services\CRUD\BaseCRUDBroadcast;
+use Larapress\CRUD\Services\CRUD\CRUDBroadcast;
 use Larapress\CRUD\Services\CRUD\ICRUDBroadcast;
 use Larapress\CRUD\Services\RBAC\PermissionsService;
+use Larapress\CRUD\Services\RepoSources\IRepositorySources;
+use Larapress\CRUD\Services\RepoSources\RepositorySources;
 use Larapress\CRUD\Validations\DateTimeZonedValidator;
-use Larapress\CRUD\Validations\DBObjectIDsValidator;
+use Larapress\CRUD\Validations\JSONObjectValidator;
 use Larapress\CRUD\Validations\NumericFarsiValidator;
 
 class PackageServiceProvider extends ServiceProvider
@@ -33,6 +36,7 @@ class PackageServiceProvider extends ServiceProvider
         $this->app->bind(IPermissionsRepository::class, PermissionsRepository::class);
         $this->app->bind(IPermissionsService::class, PermissionsService::class);
         $this->app->bind(ICRUDBroadcast::class, CRUDBroadcast::class);
+        $this->app->bind(IRepositorySources::class, RepositorySources::class);
     }
 
     /**
@@ -43,9 +47,9 @@ class PackageServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->loadTranslationsFrom(__DIR__.'/../../resources/lang', 'larapress');
+        $this->loadMigrationsFrom(__DIR__.'/../../migrations');
         $this->loadRoutesFrom(__DIR__.'/../../routes/api.php');
         $this->loadRoutesFrom(__DIR__.'/../../routes/channels.php');
-        $this->loadMigrationsFrom(__DIR__.'/../../migrations');
 
         $this->publishes(
             [
@@ -58,11 +62,13 @@ class PackageServiceProvider extends ServiceProvider
             $this->commands([
                 CreateSuperUser::class,
                 UpdatePermissions::class,
+                CreateCRUDJSON::class,
             ]);
         }
 
 
         NumericFarsiValidator::register();
         DateTimeZonedValidator::register();
+        JSONObjectValidator::register();
     }
 }

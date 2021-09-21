@@ -5,7 +5,6 @@ namespace Larapress\CRUD\Middleware;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 use Larapress\CRUD\Exceptions\AppException;
-use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 use Larapress\CRUD\ICRUDUser;
 use Larapress\CRUD\Services\CRUD\ICRUDVerb;
 

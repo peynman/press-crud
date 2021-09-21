@@ -15,6 +15,7 @@ class CreateRolesTable extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('author_id', false, true);
             $table->string('name');
             $table->string('title');
             $table->integer('priority', false, true)->default(0);
@@ -24,6 +25,8 @@ class CreateRolesTable extends Migration
             $table->index(['deleted_at', 'created_at', 'updated_at', 'name']);
 
             $table->unique(['deleted_at', 'name']);
+
+            $table->foreign('author_id')->references('id')->on('users');
         });
     }
 

@@ -1,7 +1,5 @@
 <?php
 
-use ;
-
 return [
     /**
      * User model class
@@ -12,14 +10,16 @@ return [
         'provider' => \Larapress\Profiles\CRUD\UserCRUDProvider::class,
         'compositions' => [
             // \Larapress\Auth\Compositions\UserAuthComposition::class,
+            // \Larapress\ECommerce\Compositions\UserBalanceComposition::class,
+            // \Larapress\LCMS\Services\SupportGroup\Compositions\UserComposition::class,
         ],
     ],
 
     // named permissions used for system wide services
     'app_permissions' => [
-        'horizon',
-        'log-viewer',
-        'telescope',
+        // 'horizon',
+        // 'log-viewer',
+        // 'telescope',
     ],
 
     // available verbs for crud resources
@@ -40,6 +40,14 @@ return [
         'api',
         'auth:api',
         \Larapress\CRUD\Middleware\CRUDAuthorizeRequest::class,
+    ],
+
+    /**
+     * Middlewares for public CRUD routes
+     */
+    'public-middlewares' => [
+        'api',
+        'web',
     ],
 
     /**
@@ -70,16 +78,48 @@ return [
     /**
      * DateTime format used to parse or present Dates
      */
-    'datetime-format' => 'Y-m-d\TH:i:sO',
+    'datetime-format' => 'Y-m-d\TH:i:sP',
+
+    // default repository retrieve limits
+    'repository' => [
+        'limit' => 50,
+        'max_limit' => 200,
+        'min_limit' => 5,
+    ],
 
     /**
      * Available languages for CRUD API
      */
     'languages' => [
         'en' => \Larapress\CRUD\Translation\Lang\Roman::class,
-        'fa' => \Larapress\CRUD\Translation\Lang\Persian::class,
+        // 'fa' => \Larapress\CRUD\Translation\Lang\Persian::class,
     ],
 
+    // default repository retrieve limits
+    'repository' => [
+        'limit' => 50,
+        'max_limit' => 200,
+        'min_limit' => 5,
+    ],
+
+    /** safe sources for client to ask with "ServerSources" page property */
+    'safe-sources' => [
+        \Larapress\CRUD\Repository\IPermissionsRepository::class,
+        \Larapress\CRUD\Repository\IRoleRepository::class,
+        // \Larapress\Profiles\Repository\PhoneNumber\IPhoneNumberRepository::class,
+        // \Larapress\Profiles\Repository\Domain\IDomainRepository::class,
+        // \Larapress\Profiles\Repository\Form\IFormRepository::class,
+        // \Larapress\Profiles\Repository\Filter\IFilterRepository::class,
+        // \Larapress\ECommerce\Services\Banking\IBankGatewayRepository::class,
+        // \Larapress\ECommerce\Services\Product\IProductRepository::class,
+        // \Larapress\Pages\Repository\IPageRepository::class,
+        // \Larapress\Notifications\Repository\ISMSGatewayRepository::class,
+        // \Larapress\LCMS\Services\CourseSession\ICourseSessionRepository::class,
+        // \Larapress\ECommerce\Services\Wallet\IWalletTransactionRepository::class,
+        // \Larapress\Notifications\Services\Notifications\INotificationsRepository::class,
+        // \Larapress\Notifications\Services\Chat\IChatRepository::class,
+
+    ],
 
     /**
      * crud resources of the package
@@ -90,18 +130,6 @@ return [
             'model' => \Larapress\CRUD\Models\Role::class,
             'provider' => \Larapress\CRUD\CRUD\RoleCRUDProvider::class,
         ],
-    ],
-
-    /**
-     * All CRUD Controllers to register
-     */
-    'controllers' => [
-        \Larapress\CRUD\Controllers\RoleController::class,
-        // 'include::larapress.reports.controllers',
-        // 'include::larapress.notifications.controllers',
-        // 'include::larapress.profiles.controllers',
-        // 'include::larapress.ecommerce.controllers',
-        // 'include::larapress.pages.controllers',
     ],
 
     /**

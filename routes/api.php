@@ -1,29 +1,43 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Larapress\CRUD\Services\CRUD\CRUDController;
 use Larapress\CRUD\Services\CRUD\ICRUDBroadcast;
+use Larapress\CRUD\Services\RepoSources\RepositoryController;
+use Larapress\CRUD\Services\CRUD\ICRUDProvider;
+
+function registerProviders($providers)
+{
+    foreach ($providers as $providerClass) {
+        if (Str::startsWith($providerClass, 'include::')) {
+            $include = Str::substr($providerClass, Str::length('include::'));
+            registerProviders(config($include));
+        } else {
+            /** @var ICRUDProvider */
+            $provider = new $providerClass();
+            call_user_func(
+                [
+                    CRUDController::class, 'registerCrudRoutes'
+                ],
+                $provider
+            );
+        }
+    }
+}
 
 Route::middleware(config('larapress.crud.middlewares'))
     ->prefix(config('larapress.crud.prefix'))
     ->group(function () {
-        $controllers = config('larapress.crud.controllers');
-        $registerControllers = function ($controllers, $registerFunction) {
-            if (is_null($controllers)) {
-                return;
-            }
+        registerProviders(config('larapress.crud.permissions'));
+    });
 
-            foreach ($controllers as $controller) {
-                if (Str::startsWith($controller, 'include::')) {
-                    $include = Str::substr($controller, Str::length('include::'));
-                    $registerFunction(config($include), $registerFunction);
-                } else {
-                    call_user_func([$controller, 'registerRoutes']);
-                }
-            }
-        };
-        $registerControllers($controllers, $registerControllers);
+Route::middleware(config('larapress.crud.public-middlewares'))
+    ->prefix(config('larapress.crud.prefix'))
+    ->group(function () {
+        RepositoryController::registerPublicApiRoutes();
     });
 
 Route::middleware(config('larapress.crud.broadcast-middlewares'))

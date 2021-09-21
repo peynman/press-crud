@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Larapress\CRUD\Services\CRUD\Traits\CRUDProviderTrait;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
-use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 use Larapress\CRUD\Models\Role;
 use Larapress\CRUD\ICRUDUser;
 use Larapress\CRUD\Services\CRUD\ICRUDVerb;
@@ -31,7 +30,7 @@ class RoleCRUDProvider implements ICRUDProvider
     public $createValidations = [
         'name' => 'required|string|unique:roles,name|max:190|regex:/(^[A-Za-z0-9-_.]+$)+/',
         'title' => 'required|string',
-        'permissions.*.id' => 'nullable|exists:permissions,id',
+        'permissions.*' => 'nullable|exists:permissions,id',
         'priority' => 'required|numeric',
     ];
     public $validSortColumns = [
@@ -42,9 +41,6 @@ class RoleCRUDProvider implements ICRUDProvider
         'updated_at',
         'deleted_at',
     ];
-    public $validRelations = [
-        'permissions',
-    ];
     public $defaultShowRelations = [
         'permissions',
     ];
@@ -52,6 +48,19 @@ class RoleCRUDProvider implements ICRUDProvider
         'name',
         'title',
     ];
+
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
+    public function getValidRelations(): array {
+        return [
+            'permissions' => null,
+            'author' => config('larapress.crud.user.provider'),
+        ];
+    }
+
     /**
      * Exclude current id in name unique request
      *
@@ -67,7 +76,7 @@ class RoleCRUDProvider implements ICRUDProvider
         $updateValidations = [
             'name' => 'required|string|max:190|regex:/(^[A-Za-z0-9-_.]+$)+/|unique:roles,name',
             'title' => 'required|string',
-            'permissions.*.id' => 'nullable|exists:permissions,id',
+            'permissions.*' => 'nullable|exists:permissions,id',
             'priority' => 'required|numeric',
         ];
 
@@ -122,7 +131,7 @@ class RoleCRUDProvider implements ICRUDProvider
     public function onAfterCreate($object, array $input_data): void
     {
         if (!empty($input_data['permissions'])) {
-            $this->syncBelongsToManyRelation('permissions', $object, $input_data['permissions']);
+            $this->syncBelongsToManyRelation('permissions', $object, $input_data);
         }
     }
 
@@ -140,7 +149,7 @@ class RoleCRUDProvider implements ICRUDProvider
             $this->syncBelongsToManyRelation('permissions', $object, $input_data);
         }
 
-        // @todo: add cache reset for users with this role
+        // forget cached permission for users with this role
         $object->users()->chunk(100, function ($users) {
             foreach ($users as $user) {
                 $user->forgetPermissionsCache();

@@ -95,14 +95,14 @@ trait BaseCRUDUser
 
         if (is_object($permission)) {
             foreach ($this->cachedPermissions as $my_permission) {
-                if ($my_permission[0] === $permission->id) {
+                if ($my_permission['id'] === $permission->id) {
                     return true;
                 }
             }
         } else {
-            $index_to_check = 1; // permission name
+            $index_to_check = 'name'; // permission name
             if (is_numeric($permission)) {
-                $index_to_check = 0; // permission id
+                $index_to_check = 'id'; // permission id
             }
             foreach ($this->cachedPermissions as $my_permission) {
                 if ($my_permission[$index_to_check] === $permission) {
@@ -186,7 +186,10 @@ trait BaseCRUDUser
         $this->cachedPermissions = [];
         foreach ($this->cachedRoles as $role) {
             foreach ($role['permissions'] as $permission) {
-                $this->cachedPermissions[] = [$permission['id'], $permission['name'].'.'.$permission['verb']];
+                $this->cachedPermissions[] = [
+                    'id' => $permission['id'],
+                    'name' => $permission['name'].'.'.$permission['verb']
+                ];
             }
         }
 

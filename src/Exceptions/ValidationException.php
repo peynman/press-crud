@@ -28,6 +28,12 @@ class ValidationException extends AppException
         return $this->validations;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param Request $request
+     * @return void
+     */
     public function render(Request $request)
     {
         if ($request->wantsJson()) {

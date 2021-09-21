@@ -22,7 +22,7 @@ class PermissionsRepository implements IPermissionsRepository
             false,
             function () use ($user) {
                 $mypermissions = array_map(function ($p) {
-                    return $p[0];
+                    return $p['id'];
                 }, $user->getPermissions());
                 return Permission::whereIn('id', $mypermissions)->get();
             },

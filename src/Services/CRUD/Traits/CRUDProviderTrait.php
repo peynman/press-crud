@@ -100,7 +100,7 @@ trait CRUDProviderTrait
     /**
      * @return array
      */
-    public function getEagerRelations(): array
+    public function getDefaultShowRelations(): array
     {
         return isset($this->defaultShowRelations) ? $this->defaultShowRelations : [];
     }

@@ -2,24 +2,23 @@
 
 namespace Larapress\CRUD\Services\CRUD;
 
+use Exception;
 use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
 use Larapress\CRUD\Services\CRUD\ICRUDExporter;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 use Larapress\CRUD\Services\CRUD\ICRUDService;
-use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 
 /**
  * Used by any resource that needs CRUD end points.
  *
  * Class CRUDController
  */
-abstract class CRUDController extends Controller
+class CRUDController extends Controller
 {
     protected $crudService;
 
@@ -172,69 +171,67 @@ abstract class CRUDController extends Controller
     }
 
     /**
-     * @param string $name
-     * @param string $controller
-     * @param string $provider
+     * @param ICRUDProvider $provider
      */
-    public static function registerCrudRoutes($name, $controller, $provider, $additionalVerbs = [])
+    public static function registerCrudRoutes($provider)
     {
-        if (! Str::startsWith($controller, '\\')) {
-            $controller = '\\'.$controller;
-        }
+        $controller = '\\'.self::class;
+        $name = $provider->getPermissionObjectName();
 
-        /** @var IPermissionsMetadata */
-        $pro = new $provider();
-        $avVerbs = $pro->getPermissionVerbs();
-        $verbs = [];
-        if (in_array(ICRUDVerb::CREATE, $avVerbs)) {
-            $verbs[ICRUDVerb::CREATE] = [
+        $internalVerbs = [
+            ICRUDVerb::CREATE => [
                 'methods' => ['POST'],
                 'url' => $name,
                 'uses' => $controller.'@store',
-            ];
-        }
-        if (in_array(ICRUDVerb::DELETE, $avVerbs)) {
-            $verbs[ICRUDVerb::DELETE] = [
+            ],
+            ICRUDVerb::DELETE => [
                 'methods' => ['DELETE'],
                 'url' => $name.'/{id}',
                 'uses' => $controller.'@destroy',
-            ];
-        }
-        if (in_array(ICRUDVerb::EDIT, $avVerbs)) {
-            $verbs[ICRUDVerb::EDIT] = [
+            ],
+            ICRUDVerb::EDIT => [
                 'methods' => ['PUT'],
                 'url' => $name.'/{id}',
                 'uses' => $controller.'@update',
-            ];
-        }
-        if (in_array(ICRUDVerb::VIEW, $avVerbs)) {
-            $verbs['query'] = [
+            ],
+            ICRUDVerb::VIEW => [
                 'methods' => ['POST'],
                 'url' => $name.'/query',
                 'uses' => $controller.'@query',
-            ];
-            $verbs['show'] = [
+            ],
+            ICRUDVerb::SHOW => [
                 'methods' => ['GET'],
                 'url' => $name.'/{id}',
                 'uses' => $controller.'@show',
-            ];
-        }
-        if (in_array(ICRUDVerb::EXPORT, $avVerbs)) {
-            $verbs['export'] = [
+            ],
+            ICRUDVerb::EXPORT => [
                 'methods' => ['POST'],
                 'url' => $name.'/export',
                 'uses' => $controller.'@export',
-            ];
-        }
-        if (in_array(ICRUDVerb::REPORTS, $avVerbs)) {
-            $verbs['reports'] = [
+            ],
+            ICRUDVerb::REPORTS => [
                 'methods' => ['POST'],
                 'url' => $name.'/reports',
                 'uses' => $controller.'@reports',
-            ];
+            ]
+        ];
+
+        $avVerbs = $provider->getPermissionVerbs();
+        $verbs = [];
+
+        foreach ($avVerbs as $verb => $meta) {
+            if (is_string($meta) && isset($internalVerbs[$meta])) {
+                $verbs[$meta] = $internalVerbs[$meta];
+            } else if (is_string($verb) && is_array($meta)) {
+                if (isset($meta['uses']) && isset($meta['url']) && isset($meta['methods'])) {
+                    $vervs[$verb] = $meta;
+                } else {
+                    throw new Exception("Invalid CRUD verb. $provider->getPermissionObjectName() for verb $verb");
+                }
+            }
         }
-        $verbs = array_merge($verbs, $additionalVerbs);
-        self::registerVerbs($name, $verbs, $provider);
+
+        self::registerVerbs($name, $verbs, get_class($provider));
     }
 
     /**

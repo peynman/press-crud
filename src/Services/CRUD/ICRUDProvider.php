@@ -66,7 +66,7 @@ interface ICRUDProvider extends IPermissionsMetadata
     /**
      * @return array
      */
-    public function getEagerRelations(): array;
+    public function getDefaultShowRelations(): array;
 
     /**
      * Undocumented function

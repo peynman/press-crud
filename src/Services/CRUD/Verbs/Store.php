@@ -59,7 +59,7 @@ class Store implements ICRUDVerb {
         }
 
         $object = $crudStorage->store($crudProvider, $input_data);
-        $with = $crudProvider->getEagerRelations();
+        $with = $crudProvider->getDefaultShowRelations();
         if (!is_null($with)) {
             $object->load($with);
         }
