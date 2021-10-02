@@ -2,28 +2,12 @@
 
 namespace Larapress\CRUD;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Facades\Cache;
 use Larapress\CRUD\Extend\Helpers;
-use Larapress\CRUD\Factories\UserFactory;
 use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Models\Role;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 trait BaseCRUDUser
 {
-    use HasFactory;
-
-    /**
-     * Undocumented function
-     *
-     * @return Factory
-     */
-    protected static function newFactory()
-    {
-        return UserFactory::new();
-    }
-
     /** @var array */
     public $cachedRoles = null;
     /** @var array */

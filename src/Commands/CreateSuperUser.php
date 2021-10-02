@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Larapress\CRUD\Models\Permission;
 use Illuminate\Database\Eloquent\Builder;
 use Larapress\CRUD\Models\Role;
+use Larapress\CRUD\Services\RBAC\IPermissionsService;
 use Larapress\Profiles\Models\Domain;
 
 class CreateSuperUser extends Command
@@ -46,13 +47,16 @@ class CreateSuperUser extends Command
         $form = [
             'name' => $this->option('name', null),
             'password' => $this->option('password', null),
-            'domain' => $this->option('domain', null)
         ];
         if (is_null($form['name']) || is_null($form['password'])) {
             $form = $this->fillForm($form);
         }
-        self::updateSuperUserWithData($form);
-        $this->info('Account updated with super-role.');
+
+        /** @var IPermissionsService */
+        $service = app(IPermissionsService::class);
+        $service->createSuperUser($form['name'], $form['password']);
+
+        $this->info('Account created/updated.');
 
         return 0;
     }
@@ -64,50 +68,5 @@ class CreateSuperUser extends Command
         }
 
         return $vals;
-    }
-
-    public static function updateSuperUserWithData($form)
-    {
-        /** @var Builder $user_quer */
-        $user_quer = call_user_func([config('larapress.crud.user.model'), 'query']);
-        /** @var \Larapress\CRUD\ICRUDUser $user */
-        $user = $user_quer->where('name', $form['name'])->first();
-
-        if (is_null($user)) {
-            $user = call_user_func([config('larapress.crud.user.model'), 'create'], [
-                'name' => $form['name'],
-                'password' => Hash::make($form['password']),
-            ]);
-        } else {
-            if ($form['password']) {
-                $user->update([
-                    'password' => Hash::make($form['password']),
-                ]);
-            }
-        }
-
-        /** @var Role $super_role */
-        $super_role = Role::where('name', 'super-role')->first();
-        if (is_null($super_role)) {
-            $super_role = Role::create([
-                'name' => 'super-role',
-                'title' => 'Super Role',
-                'priority' => 4294967295,
-            ]);
-        }
-        if (! is_null($super_role)) {
-            $user->roles()->sync($super_role);
-        }
-
-        if (is_numeric($form['domain'])) {
-            $user->domains()->attach($form['domain']);
-        } else if (is_string($form['domain'])) {
-            $user->domains()->attach(Domain::where('name', $form['domain'])->first()->id);
-        }
-
-        /** @var int[] $permission_ids */
-        $permission_ids = Permission::query()->select('id')->pluck('id');
-        $super_role->permissions()->sync($permission_ids);
-        $user->forgetPermissionsCache();
     }
 }

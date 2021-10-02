@@ -118,6 +118,7 @@ class PermissionsService implements IPermissionsService
         $permission_ids = Permission::query()->select('id')->pluck('id');
         $super_role->permissions()->sync($permission_ids);
         $user->forgetPermissionsCache();
+
         return $user;
     }
 }
