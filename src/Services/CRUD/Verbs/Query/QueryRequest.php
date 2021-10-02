@@ -5,6 +5,7 @@ namespace Larapress\CRUD\Services\CRUD\Verbs\Query;
 use Illuminate\Foundation\Http\FormRequest;
 use Larapress\CRUD\Extend\Helpers;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
+use Illuminate\Support\Str;
 
 class QueryRequest extends FormRequest
 {
@@ -139,7 +140,7 @@ class QueryRequest extends FormRequest
     public function isSearchQuery()
     {
         $search = $this->get('search');
-        return is_string($search) && strlen($search) >= 3;
+        return is_string($search) && (strlen($search) >= 3 || Str::startsWith($search, '#') );
     }
 
     /**

@@ -4,11 +4,15 @@ namespace Larapress\CRUD\Extend;
 
 use Carbon\Carbon;
 use stdClass;
+use Illuminate\Support\Str;
 
 abstract class CastableClassArray extends stdClass
 {
-    function __construct($payload)
+    protected $TYPE_CASTS = [];
+
+    function __construct($payload, $casts = [])
     {
+        $this->TYPE_CASTS = array_merge($this->TYPE_CASTS, $casts);
         if (is_array($payload)) {
             $this->from_array($payload);
         }
@@ -20,25 +24,45 @@ abstract class CastableClassArray extends stdClass
             if (isset($array[$attrName])) {
                 $uncastedValue = $array[$attrName];
                 if (isset($this->TYPE_CASTS[$attrName])) {
+                    if (is_null($uncastedValue)) {
+                        $this->{$attrName} = null;
+                        continue;
+                    }
+
                     switch ($this->TYPE_CASTS[$attrName]) {
                         case 'boolean':
                         case 'bool':
-                            $this->{$attrName} = boolval($uncastedValue);
+                            if (gettype($uncastedValue) === 'boolean') {
+                                $this->{$attrName} = $uncastedValue;
+                            } else {
+                                $this->{$attrName} = boolval($uncastedValue);
+                            }
                         case 'float':
+                        case 'decimal':
                             $this->{$attrName} = floatval($uncastedValue);
                             break;
                         case 'int':
+                        case 'integer':
+                        case 'number':
                             $this->{$attrName} = intval($uncastedValue);
                             break;
+                        case 'date':
                         case 'carbon':
-                            if (!is_null($uncastedValue)) {
-                                $this->{$attrName} = Carbon::parse($uncastedValue);
-                            } else {
-                                $this->{$attrName} = null;
-                            }
+                            $this->{$attrName} = Carbon::parse($uncastedValue);
                             break;
                         default:
-                            $this->{$attrName} = $uncastedValue;
+                            if (Str::startsWith($this->TYPE_CASTS[$attrName], 'array:')) {
+                                $this->{$attrName} = [];
+                                $arrItemClass = Str::substr($this->TYPE_CASTS[$attrName], Str::length('array:'));
+                                foreach ($uncastedValue as $uncastedArrItem) {
+                                    $this->{$attrName}[] = new $arrItemClass($uncastedArrItem);
+                                }
+                            } else if (Str::startsWith($this->TYPE_CASTS[$attrName], 'object:')) {
+                                $arrItemClass = Str::substr($this->TYPE_CASTS[$attrName], Str::length('object:'));
+                                $this->{$attrName} = new $arrItemClass($uncastedValue);
+                            } else {
+                                $this->{$attrName} = $uncastedValue;
+                            }
                     }
                 } else {
                     $this->{$attrName} = $uncastedValue;

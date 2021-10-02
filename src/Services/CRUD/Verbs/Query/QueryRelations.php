@@ -161,27 +161,52 @@ class QueryRelations
         }
 
         if ($shouldInclude) {
-            $query->with([
-                $relationNameFull => function (Relation $relationQuery)
-                use (
-                    $user,
-                    $relationColumns,
-                    $relationNameFull,
-                    $qFilter,
-                    $relationProvider,
-                    $requestFilters
-                ) {
-                    if (count($relationColumns) > 0 && $relationColumns[0] !== "*") {
-                        $relationQuery->select($relationColumns);
+            if (Str::endsWith($relationNameFull, '_count')) {
+                $realRelationName = Str::substr($relationNameFull, 0, Str::length($relationNameFull) - Str::length('_count'));
+                $query->withCount([
+                    $realRelationName => function (Builder $relationQuery)
+                    use (
+                        $user,
+                        $relationColumns,
+                        $relationNameFull,
+                        $qFilter,
+                        $relationProvider,
+                        $requestFilters
+                    ) {
+                        if (count($relationColumns) > 0 && $relationColumns[0] !== "*") {
+                            $relationQuery->select($relationColumns);
+                        }
+                        if (isset($relationFilters[$relationNameFull])) {
+                            $qFilter->applyFilters($user, $relationQuery, $relationFilters[$relationNameFull], $requestFilters);
+                        }
+                        if (!is_null($relationProvider)) {
+                            $relationProvider->onBeforeQuery($relationQuery);
+                        }
                     }
-                    if (isset($relationFilters[$relationNameFull])) {
-                        $qFilter->applyFilters($user, $relationQuery->getQuery(), $relationFilters[$relationNameFull], $requestFilters);
+                ]);
+            } else {
+                $query->with([
+                    $relationNameFull => function (Relation $relationQuery)
+                    use (
+                        $user,
+                        $relationColumns,
+                        $relationNameFull,
+                        $qFilter,
+                        $relationProvider,
+                        $requestFilters
+                    ) {
+                        if (count($relationColumns) > 0 && $relationColumns[0] !== "*") {
+                            $relationQuery->select($relationColumns);
+                        }
+                        if (isset($relationFilters[$relationNameFull])) {
+                            $qFilter->applyFilters($user, $relationQuery->getQuery(), $relationFilters[$relationNameFull], $requestFilters);
+                        }
+                        if (!is_null($relationProvider)) {
+                            $relationProvider->onBeforeQuery($relationQuery->getQuery());
+                        }
                     }
-                    if (!is_null($relationProvider)) {
-                        $relationProvider->onBeforeQuery($relationQuery->getQuery());
-                    }
-                }
-            ]);
+                ]);
+            }
         }
     }
 
@@ -191,6 +216,12 @@ class QueryRelations
         if (Helpers::isAssocArray($validRelationNames)) {
             $validRelationNames = array_keys($validRelationNames);
         }
-        return $validRelationNames;
+
+        $counts = [];
+        foreach ($validRelationNames as $name) {
+            $counts[] = $name.'_count';
+        }
+
+        return array_merge($validRelationNames, $counts);
     }
 }

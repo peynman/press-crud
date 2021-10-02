@@ -32,6 +32,10 @@ class RepositorySources implements IRepositorySources
     {
         $repos = [];
         foreach ($sources as $source) {
+            if (!isset($source['resource']) || !isset($source['class'])) {
+                throw new AppException(AppException::ERR_INVALID_QUERY);
+            }
+
             $res = [];
             switch ($source['resource']) {
                 case 'object':
@@ -66,6 +70,13 @@ class RepositorySources implements IRepositorySources
                         foreach ($args as $arg) {
                             if (isset($arg['type']) && $arg['type'] !== 'json') {
                                 switch ($arg['type']) {
+                                    case 'string':
+                                        if (isset($arg['value'])) {
+                                            $methodArgs[] = $arg['value'];
+                                        } else {
+                                            $methodArgs[] = null;
+                                        }
+                                        break;
                                     case 'request':
                                         $methodArgs[] = $request;
                                         break;
@@ -73,11 +84,19 @@ class RepositorySources implements IRepositorySources
                                         $methodArgs[] = $route;
                                         break;
                                     case 'param':
-                                        $methodArgs[] = $route->parameter($arg['value']);
+                                        if (isset($args['value'])) {
+                                            $methodArgs[] = $route->parameter($arg['value']);
+                                        } else {
+                                            throw new AppException(AppException::ERR_INVALID_QUERY);
+                                        }
                                         break;
                                 }
                             } else {
-                                $methodArgs[] = is_string($arg['value']) ? json_decode($arg['value']) : $arg['value'];
+                                if (isset($arg['value'])) {
+                                    $methodArgs[] = is_string($arg['value']) ? json_decode($arg['value']) : $arg['value'];
+                                } else {
+                                    $methodArgs[] = null;
+                                }
                             }
                         }
                         $res = call_user_func([$repoRef,  $source['method']], $user, ...$methodArgs);

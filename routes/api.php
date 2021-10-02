@@ -11,6 +11,10 @@ use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 
 function registerProviders($providers)
 {
+    if (is_null($providers) || !is_array($providers)) {
+        return;
+    }
+
     foreach ($providers as $providerClass) {
         if (Str::startsWith($providerClass, 'include::')) {
             $include = Str::substr($providerClass, Str::length('include::'));

@@ -117,8 +117,7 @@ return [
         // \Larapress\LCMS\Services\CourseSession\ICourseSessionRepository::class,
         // \Larapress\ECommerce\Services\Wallet\IWalletTransactionRepository::class,
         // \Larapress\Notifications\Services\Notifications\INotificationsRepository::class,
-        // \Larapress\Notifications\Services\Chat\IChatRepository::class,
-
+        // \Larapress\Chat\Services\Chat\IChatRepository::class,
     ],
 
     /**
@@ -144,6 +143,8 @@ return [
         // 'include::larapress.profiles.permissions',
         // 'include::larapress.ecommerce.permissions',
         // 'include::larapress.pages.permissions',
+        // 'include::larapress.fileshare.permissions',
+        // 'include::larapress.chat.permissions',
     ],
 
 ];

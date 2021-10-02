@@ -85,6 +85,18 @@ class RoleCRUDProvider implements ICRUDProvider
         return $updateValidations;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param array $args
+     * @return array
+     */
+    public function onBeforeCreate(array $args): array
+    {
+        $args['author_id'] = Auth::user()->id;
+
+        return $args;
+    }
 
     /**
      * @param Builder $query
