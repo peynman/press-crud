@@ -113,7 +113,7 @@ return [
         // \Larapress\ECommerce\Services\Banking\IBankGatewayRepository::class,
         // \Larapress\ECommerce\Services\Product\IProductRepository::class,
         // \Larapress\Pages\Repository\IPageRepository::class,
-        // \Larapress\Notifications\Repository\ISMSGatewayRepository::class,
+        // \Larapress\Notifications\Services\SMSService\ISMSGatewayRepository::class,
         // \Larapress\LCMS\Services\CourseSession\ICourseSessionRepository::class,
         // \Larapress\ECommerce\Services\Wallet\IWalletTransactionRepository::class,
         // \Larapress\Notifications\Services\Notifications\INotificationsRepository::class,
