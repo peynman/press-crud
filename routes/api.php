@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Larapress\CRUD\Services\CRUD\CRUDController;
@@ -9,32 +8,31 @@ use Larapress\CRUD\Services\CRUD\ICRUDBroadcast;
 use Larapress\CRUD\Services\RepoSources\RepositoryController;
 use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 
-function registerProviders($providers)
-{
-    if (is_null($providers) || !is_array($providers)) {
-        return;
-    }
-
-    foreach ($providers as $providerClass) {
-        if (Str::startsWith($providerClass, 'include::')) {
-            $include = Str::substr($providerClass, Str::length('include::'));
-            registerProviders(config($include));
-        } else {
-            /** @var ICRUDProvider */
-            $provider = new $providerClass();
-            call_user_func(
-                [
-                    CRUDController::class, 'registerCrudRoutes'
-                ],
-                $provider
-            );
-        }
-    }
-}
-
 Route::middleware(config('larapress.crud.middlewares'))
     ->prefix(config('larapress.crud.prefix'))
     ->group(function () {
+        function registerProviders($providers)
+        {
+            if (is_null($providers) || !is_array($providers)) {
+                return;
+            }
+
+            foreach ($providers as $providerClass) {
+                if (Str::startsWith($providerClass, 'include::')) {
+                    $include = Str::substr($providerClass, Str::length('include::'));
+                    registerProviders(config($include));
+                } else {
+                    /** @var ICRUDProvider */
+                    $provider = new $providerClass();
+                    call_user_func(
+                        [
+                            CRUDController::class, 'registerCrudRoutes'
+                        ],
+                        $provider
+                    );
+                }
+            }
+        }
         registerProviders(config('larapress.crud.permissions'));
     });
 
