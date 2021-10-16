@@ -15,7 +15,7 @@ class Export implements ICRUDVerb {
      */
     public function getVerbName(): string
     {
-        return 'export';
+        return ICRUDVerb::EXPORT;
     }
 
     /**

@@ -19,7 +19,7 @@ class Store implements ICRUDVerb {
      */
     public function getVerbName(): string
     {
-        return 'store';
+        return ICRUDVerb::CREATE;
     }
 
     /**

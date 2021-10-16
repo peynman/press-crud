@@ -149,9 +149,9 @@ class CRUDService implements ICRUDService
 
         /** @var ICRUDVerb */
         $verb = $this->crudVerbs[$verb];
-        if (is_string($verb)) {
-            /** @var ICRUDVerb */
-            $verb = new $verb();
+        if (is_string($verb) && class_exists($verb)) {
+            app()->bind(ICRUDVerb::class, $verb);
+            $verb = app(ICRUDVerb::class);
         }
 
         return $verb->handle($this, $request, ...$args);

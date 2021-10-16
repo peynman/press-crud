@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Support\Facades\Auth;
 use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\ICRUDUser;
-use Larapress\CRUD\Services\CRUD\ICRUDVerb;
 
 class CRUDAuthorizeRequest
 {
@@ -54,43 +53,10 @@ class CRUDAuthorizeRequest
      */
     public static function getCRUDVerbPermissions($name, $verb)
     {
-        $required_permissions = [];
-
-        switch ($verb) {
-            case 'index':
-            case 'show':
-            case 'query':
-            case 'view':
-            case 'export':
-                $required_permissions[] = $name.'.'.ICRUDVerb::VIEW;
-                break;
-            case 'store':
-            case 'create':
-                $required_permissions[] = $name.'.'.ICRUDVerb::CREATE;
-                break;
-            case 'edit':
-            case 'update':
-                $required_permissions[] = $name.'.'.ICRUDVerb::EDIT;
-                break;
-            case 'delete':
-            case 'destroy':
-                $required_permissions[] = $name.'.'.ICRUDVerb::DELETE;
-                break;
-            case 'reports':
-                $required_permissions[] = $name.'.'.ICRUDVerb::REPORTS;
-                break;
-            case 'any':
-            case 'custom':
-                $required_permissions = null;
-                break;
-            default:
-                $verb = str_replace('index', 'view', $verb);
-                $verb = str_replace('show', 'view', $verb);
-                $verb = str_replace('query', 'view', $verb);
-                $required_permissions[] = $name.'.'.$verb;
-                break;
+        if ($verb === 'any') {
+            return null;
         }
 
-        return $required_permissions;
+        return [$name.'.'.$verb];
     }
 }

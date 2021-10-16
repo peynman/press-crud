@@ -6,6 +6,7 @@ use Exception;
 use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Larapress\Core\Exceptions\AppException;
 use Larapress\Core\Exceptions\ValidationException;
@@ -36,12 +37,13 @@ class CRUDController extends Controller
         $this->crudService = $service;
         $this->crudService->useCRUDExporter($crudExporter);
 
-        if (! is_null($request->route())) {
+        if (!is_null($request->route())) {
             $providerClass = $request->route()->getAction('provider');
 
             if (class_exists($providerClass)) {
+                app()->bind(ICRUDProvider::class, $providerClass);
                 /** @var ICRUDProvider $provider */
-                $provider = new $providerClass();
+                $provider = app(ICRUDProvider::class);
                 $this->crudService->useProvider($provider);
             }
         }
@@ -145,19 +147,6 @@ class CRUDController extends Controller
         ]);
     }
 
-
-    /**
-     * Reports
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function reports(Request $request)
-    {
-        return $this->crudService->handle(ICRUDVerb::REPORTS, $request);
-    }
-
     /**
      * Export
      *
@@ -175,45 +164,40 @@ class CRUDController extends Controller
      */
     public static function registerCrudRoutes($provider)
     {
-        $controller = '\\'.self::class;
+        $controller = '\\' . self::class;
         $name = $provider->getPermissionObjectName();
 
         $internalVerbs = [
             ICRUDVerb::CREATE => [
                 'methods' => ['POST'],
                 'url' => $name,
-                'uses' => $controller.'@store',
+                'uses' => $controller . '@store',
             ],
             ICRUDVerb::DELETE => [
                 'methods' => ['DELETE'],
-                'url' => $name.'/{id}',
-                'uses' => $controller.'@destroy',
+                'url' => $name . '/{id}',
+                'uses' => $controller . '@destroy',
             ],
             ICRUDVerb::EDIT => [
                 'methods' => ['PUT'],
-                'url' => $name.'/{id}',
-                'uses' => $controller.'@update',
+                'url' => $name . '/{id}',
+                'uses' => $controller . '@update',
             ],
             ICRUDVerb::VIEW => [
                 'methods' => ['POST'],
-                'url' => $name.'/query',
-                'uses' => $controller.'@query',
+                'url' => $name . '/query',
+                'uses' => $controller . '@query',
             ],
             ICRUDVerb::SHOW => [
                 'methods' => ['GET'],
-                'url' => $name.'/{id}',
-                'uses' => $controller.'@show',
+                'url' => $name . '/{id}',
+                'uses' => $controller . '@show',
             ],
             ICRUDVerb::EXPORT => [
                 'methods' => ['POST'],
-                'url' => $name.'/export',
-                'uses' => $controller.'@export',
+                'url' => $name . '/export',
+                'uses' => $controller . '@export',
             ],
-            ICRUDVerb::REPORTS => [
-                'methods' => ['POST'],
-                'url' => $name.'/reports',
-                'uses' => $controller.'@reports',
-            ]
         ];
 
         $avVerbs = $provider->getPermissionVerbs();
@@ -224,9 +208,9 @@ class CRUDController extends Controller
                 $verbs[$meta] = $internalVerbs[$meta];
             } else if (is_string($verb) && is_array($meta)) {
                 if (isset($meta['uses']) && isset($meta['url']) && isset($meta['methods'])) {
-                    $vervs[$verb] = $meta;
+                    $verbs[$verb] = $meta;
                 } else {
-                    throw new Exception("Invalid CRUD verb. $provider->getPermissionObjectName() for verb $verb");
+                    throw new Exception("Invalid CRUD $name for verb $verb ($meta)");
                 }
             }
         }
@@ -243,10 +227,10 @@ class CRUDController extends Controller
     {
         foreach ($verbs as $verb => $data) {
             Route::match($data['methods'], $data['url'], [
-                    'uses' => $data['uses'],
-                    'provider' => $provider,
-                ])
-                ->name($name.'.'.$verb);
+                'uses' => $data['uses'],
+                'provider' => $provider,
+            ])
+                ->name($name . '.' . $verb);
         }
     }
 }

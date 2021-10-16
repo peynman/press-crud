@@ -9,7 +9,6 @@ use Larapress\CRUD\Exceptions\AppException;
 use Larapress\CRUD\Services\CRUD\ICRUDService;
 use Larapress\CRUD\Services\CRUD\ICRUDVerb;
 use Larapress\CRUD\ICRUDUser;
-use Larapress\CRUD\Services\CRUD\ICRUDProvider;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Larapress\CRUD\Services\Pagination\PaginatedResponse;
 
@@ -22,7 +21,7 @@ class Query implements ICRUDVerb
      */
     public function getVerbName(): string
     {
-        return 'query';
+        return ICRUDVerb::VIEW;
     }
 
     /**

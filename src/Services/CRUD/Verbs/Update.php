@@ -20,7 +20,7 @@ class Update implements ICRUDVerb {
      */
     public function getVerbName(): string
     {
-        return 'update';
+        return ICRUDVerb::EDIT;
     }
 
     /**

@@ -9,7 +9,6 @@ interface ICRUDVerb {
     const EDIT = 'update';
     const DELETE = 'destroy';
     const CREATE = 'store';
-    const REPORTS = 'reports';
     const EXPORT = 'export';
     const SHOW = 'show';
 

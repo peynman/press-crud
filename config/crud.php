@@ -30,7 +30,7 @@ return [
         \Larapress\CRUD\Services\CRUD\ICRUDVerb::SHOW => \Larapress\CRUD\Services\CRUD\Verbs\Show::class,
         \Larapress\CRUD\Services\CRUD\ICRUDVerb::EXPORT => \Larapress\CRUD\Services\CRUD\Verbs\Export::class,
         \Larapress\CRUD\Services\CRUD\ICRUDVerb::DELETE => \Larapress\CRUD\Services\CRUD\Verbs\Destroy::class,
-        \Larapress\CRUD\Services\CRUD\ICRUDVerb::REPORTS => \Larapress\CRUD\Services\CRUD\Verbs\Reports::class,
+        // \Larapress\Reports\Services\Reports\ReportsVerb::REPORTS => \Larapress\Reports\Services\Reports\ReportsVerb::class,
     ],
 
     /**

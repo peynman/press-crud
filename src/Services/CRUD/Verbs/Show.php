@@ -15,7 +15,7 @@ class Show implements ICRUDVerb {
      */
     public function getVerbName(): string
     {
-        return 'show';
+        return ICRUDVerb::SHOW;
     }
 
     /**

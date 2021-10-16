@@ -36,6 +36,7 @@ class JWTAuthenticate extends Authenticate
                 }
             }
         } catch (Exception $e) {}
+
         return $next($request);
     }
 }
