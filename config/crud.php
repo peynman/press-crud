@@ -112,6 +112,7 @@ return [
         // \Larapress\Profiles\Repository\Filter\IFilterRepository::class,
         // \Larapress\ECommerce\Services\Banking\IBankGatewayRepository::class,
         // \Larapress\ECommerce\Services\Product\IProductRepository::class,
+        // \Larapress\ECommerce\Services\Cart\ICartRepository::class,
         // \Larapress\Pages\Repository\IPageRepository::class,
         // \Larapress\Notifications\Services\SMSService\ISMSGatewayRepository::class,
         // \Larapress\LCMS\Services\CourseSession\ICourseSessionRepository::class,
