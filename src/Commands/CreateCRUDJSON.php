@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Larapress\CRUD\Services\CRUD\ICRUDService;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionParameter;
 
 class CreateCRUDJSON extends Command
 {
@@ -16,7 +19,7 @@ class CreateCRUDJSON extends Command
      *
      * @var string
      */
-    protected $signature = 'lp:crud:json {--crud=} {--depth=}';
+    protected $signature = 'lp:crud:json {crud} {--depth=}';
 
     /**
      * The console command description.
@@ -42,17 +45,54 @@ class CreateCRUDJSON extends Command
      */
     public function handle()
     {
-        $providerClass = $this->option('crud');
-        if (is_null($providerClass)) {
-            $this->warn('no crud provider was provided');
-            return 1;
-        }
+        $providerClass = $this->argument('crud');
 
         $maxDepth = $this->option('depth');
         if (is_null($maxDepth)) {
             $maxDepth = 3;
         }
 
+        if ($providerClass === 'repos') {
+            $this->writeRepositoriesJson();
+        } else {
+            $this->writeModelProviderClassJson($providerClass, $maxDepth);
+        }
+
+        return 0;
+    }
+
+    protected function writeRepositoriesJson()
+    {
+        $repos = config('larapress.crud.safe-sources');
+
+        $json = [];
+        foreach ($repos as $repo) {
+            $interface = new ReflectionClass($repo);
+            $json[$interface->getShortName()] = [
+                'methods' => array_map(function (ReflectionMethod $m) {
+                    return [
+                        'name' => $m->getName(),
+                        'params' => array_map(function (ReflectionParameter $p) {
+                            return [
+                                'name' => $p->getName(),
+                                'type' => $p->getType(),
+                            ];
+                        }, $m->getParameters()),
+                    ];
+                }, $interface->getMethods()),
+                'class' => $repo,
+            ];
+        }
+
+        $handle = fopen(storage_path('json/crud/repos.json'), 'w');
+        fwrite($handle, json_encode($json, JSON_PRETTY_PRINT));
+        fclose($handle);
+
+        $this->info('done.');
+    }
+
+    protected function writeModelProviderClassJson(string $providerClass, int $maxDepth)
+    {
         if (!class_exists($providerClass)) {
             $this->warn('Provider class ' . $providerClass . ' not found');
             return 1;
@@ -76,21 +116,8 @@ class CreateCRUDJSON extends Command
         fclose($handle);
 
         $this->info('done.');
-
-        return 0;
     }
 
-    /**
-     * Undocumented function
-     *
-     * @param ICRUDService $service
-     * @param ICRUDProvider $provider
-     * @param [type] $detailed
-     * @param [type] $depth
-     * @param [type] $maxDepth
-     * @param [type] $providerNames
-     * @return array
-     */
     public function getProviderJSON(ICRUDService $service, ICRUDProvider $provider, $detailed, $depth, $maxDepth, &$providerNames)
     {
         $providerNames[] = $provider->getPermissionObjectName();
