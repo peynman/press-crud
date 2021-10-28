@@ -62,7 +62,7 @@ class Query implements ICRUDVerb
      *
      * @throws AppException
      */
-    protected function getQueryFromRequest(ICRUDUser $user, ICRUDService $crudService, QueryRequest $request, $onBeforeQuery = null)
+    public function getQueryFromRequest(ICRUDUser $user, ICRUDService $crudService, QueryRequest $request, $onBeforeQuery = null)
     {
         $crudProvider = $request->getProvider();
 
