@@ -1,19 +1,19 @@
 <?php
 
-namespace Larapress\Profiles\Commands;
+namespace Larapress\CRUD\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Larapress\CRUD\Models\Role;
-use Larapress\Profiles\Models\Form;
 
-class ImportForms extends Command
+class ImportRoles extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'lp:profiles:import-forms {path?}';
+    protected $signature = 'lp:crud:import-roles {path?}';
 
     /**
      * The console command description.
@@ -47,7 +47,7 @@ class ImportForms extends Command
         $types = json_decode(file_get_contents($filepath), true);
 
         foreach ($types as $type) {
-            Role::updateOrCreate([
+            $role = Role::updateOrCreate([
                 'id' => $type['id'],
                 'name' => $type['name'],
             ], [
@@ -58,6 +58,10 @@ class ImportForms extends Command
                 'updated_at' => $type['updated_at'],
                 'deleted_at' => $type['deleted_at'],
             ]);
+
+            $permissions = Collection::make($type['permissions']);
+            $role->permissions()->sync($permissions->pluck('id')->toArray());
+
             $this->info('Role added with name: '.$type['name'].'.');
         }
 

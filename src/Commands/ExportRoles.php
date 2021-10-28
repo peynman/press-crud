@@ -1,6 +1,6 @@
 <?php
 
-namespace Larapress\Profiles\Commands;
+namespace Larapress\CRUD\Commands;
 
 use Illuminate\Console\Command;
 use Larapress\CRUD\Models\Role;
@@ -46,8 +46,13 @@ class ExportRoles extends Command
             $filepath = storage_path('/json/roles.json');
         }
 
-        file_put_contents($filepath, json_encode(Role::with('permissions')->all(), JSON_PRETTY_PRINT));
-        $this->info('Roles exported to path: '.$filepath.'.');
+        file_put_contents($filepath, json_encode(
+            Role::with(['permissions' => function ($q) {
+                $q->select('id');
+            }])->get(),
+            JSON_PRETTY_PRINT
+        ));
+        $this->info('Roles exported to path: ' . $filepath . '.');
 
         return 0;
     }

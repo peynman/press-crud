@@ -21,6 +21,8 @@ use Larapress\CRUD\Services\RepoSources\RepositorySources;
 use Larapress\CRUD\Validations\DateTimeZonedValidator;
 use Larapress\CRUD\Validations\JSONObjectValidator;
 use Larapress\CRUD\Validations\NumericFarsiValidator;
+use Larapress\CRUD\Commands\ExportRoles;
+use Larapress\CRUD\Commands\ImportRoles;
 
 class PackageServiceProvider extends ServiceProvider
 {
@@ -63,6 +65,8 @@ class PackageServiceProvider extends ServiceProvider
                 CreateSuperUser::class,
                 UpdatePermissions::class,
                 CreateCRUDJSON::class,
+                ExportRoles::class,
+                ImportRoles::class,
             ]);
         }
 
