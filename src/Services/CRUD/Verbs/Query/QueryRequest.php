@@ -72,11 +72,12 @@ class QueryRequest extends FormRequest
             'with.*.columns' => 'required_with:with|string',
             'sort' => 'nullable|array',
             'sort.*.column' => 'required_with:sort|string|in:' . implode(',', $this->validSortColumnNames),
-            'sort.*.dir' => 'required_with:sort|string|in:desc,asc',
+            'sort.*.direction' => 'required_with:sort|string|in:desc,asc',
             'filters' => 'nullable|array',
             'limit' => 'nullable|numeric',
             'page' => 'nullable|numeric',
-            'ref_id' => 'nullable|numeric',
+            'refId' => 'nullable|numeric',
+            'withTrashed' => 'nullable|boolean',
         ];
     }
 
@@ -181,5 +182,25 @@ class QueryRequest extends FormRequest
     public function getFilters()
     {
         return $this->get('filters', []);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return int
+     */
+    public function getRequestRefId()
+    {
+        return $this->get('refId', 1);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
+    public function includeTrashed()
+    {
+        return $this->get('withTrashed', false);
     }
 }

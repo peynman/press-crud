@@ -50,7 +50,7 @@ class Query implements ICRUDVerb
                 $qResult->perPage,
                 $qResult->currentPage,
             ),
-            $request->get('refId', 1)
+            $qRequest->getRequestRefId()
         );
     }
 
@@ -70,6 +70,10 @@ class Query implements ICRUDVerb
         $query = $crudProvider->onBeforeQuery(call_user_func([$crudProvider->getModelClass(), 'query']));
         if (!is_null($onBeforeQuery)) {
             $onBeforeQuery($query);
+        }
+
+        if ($request->includeTrashed()) {
+            $query->withTrashed();
         }
 
         $qFilter = new QueryFilter();
