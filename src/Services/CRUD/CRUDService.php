@@ -15,6 +15,8 @@ class CRUDService implements ICRUDService
      * @var ICRUDProvider
      */
     public $crudProvider;
+    /** @var string */
+    public $crudProviderClass;
     /**
      * @var ICRUDExporter
      */
@@ -34,11 +36,27 @@ class CRUDService implements ICRUDService
     }
 
     /**
-     * @param ICRUDProvider $provider
+     * @param ICRUDProvider|string $provider
      */
-    public function useProvider(ICRUDProvider $provider)
+    public function useProvider(ICRUDProvider|string $provider)
     {
+        if (is_string($provider)) {
+            $this->crudProviderClass = $provider;
+        } else {
+            $this->crudProviderClass = get_class($provider);
+        }
+
         $this->crudProvider = $this->makeCompositeProvider($provider);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return string
+     */
+    public function getProviderSourceClass(): string
+    {
+        return $this->crudProviderClass;
     }
 
     /**

@@ -8,9 +8,16 @@ use Illuminate\Http\Response;
 interface ICRUDService
 {
     /**
-     * @param ICRUDProvider $provider
+     * @param ICRUDProvider|string $provider
      */
-    public function useProvider(ICRUDProvider $provider);
+    public function useProvider(ICRUDProvider|string $provider);
+
+    /**
+     * Undocumented function
+     *
+     * @return string
+     */
+    public function getProviderSourceClass(): string;
 
     /**
      * @param ICRUDStorage $storage

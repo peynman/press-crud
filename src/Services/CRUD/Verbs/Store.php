@@ -64,7 +64,7 @@ class Store implements ICRUDVerb {
             $object->load($with);
         }
 
-        CRUDCreated::dispatch(Auth::user(), $object, get_class($crudProvider), Carbon::now());
+        CRUDCreated::dispatch(Auth::user(), $object, $service->getProviderSourceClass(), Carbon::now());
 
         return $object;
     }

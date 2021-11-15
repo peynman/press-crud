@@ -49,7 +49,7 @@ class Destroy implements ICRUDVerb
         }
 
         DB::transaction(
-            function () use ($object, $crudProvider) {
+            function () use ($service, $object, $crudProvider) {
                 if (!$crudProvider->onBeforeAccess($object)) {
                     throw new AppException(AppException::ERR_OBJ_ACCESS_DENIED);
                 }
@@ -59,7 +59,7 @@ class Destroy implements ICRUDVerb
                     $crudProvider->onAfterDestroy($object);
                 }
 
-                CRUDDeleted::dispatch(Auth::user(), $object, get_class($crudProvider), Carbon::now());
+                CRUDDeleted::dispatch(Auth::user(), $object, $service->getProviderSourceClass(), Carbon::now());
             }
         );
 

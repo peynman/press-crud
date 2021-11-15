@@ -122,9 +122,6 @@ class CRUDVerbEvent implements ShouldBroadcast
     {
         /** @var ICRUDService */
         $crudService = app(ICRUDService::class);
-        $providerClass = new $this->providerClass;
-        $provider = new $providerClass;
-        $crudService->useProvider($provider);
-        return $crudService->getCompositeProvider();
+        return $crudService->makeCompositeProvider($this->providerClass);
     }
 }

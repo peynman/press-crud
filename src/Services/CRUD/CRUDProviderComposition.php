@@ -5,7 +5,6 @@ namespace Larapress\CRUD\Services\CRUD;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Larapress\CRUD\Services\RBAC\IPermissionsMetadata;
 
 class CRUDProviderComposition implements ICRUDProvider
 {

@@ -74,7 +74,7 @@ class Update implements ICRUDVerb {
             $object->load($with);
         }
 
-        CRUDUpdated::dispatch(Auth::user(), $object, get_class($crudProvider), Carbon::now());
+        CRUDUpdated::dispatch(Auth::user(), $object, $service->getProviderSourceClass(), Carbon::now());
 
         return $object;
     }

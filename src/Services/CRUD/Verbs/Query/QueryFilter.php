@@ -47,9 +47,7 @@ class QueryFilter
                         if (is_array($values) && isset($values[0][isset($parts[3]) ? $parts[3] : 'id'])) {
                             $values = collect($values)->pluck('id')->toArray();
                         } else {
-                            if (is_array($values)) {
-                                $values = array_keys($values);
-                            } else {
+                            if (!is_array($values)) {
                                 $values = [$values];
                             }
                         }
@@ -67,9 +65,7 @@ class QueryFilter
                         if (is_array($values) && isset($values[0][isset($parts[3]) ? $parts[3] : 'id'])) {
                             $values = collect($values)->pluck('id')->toArray();
                         } else {
-                            if (is_array($values)) {
-                                $values = array_values($values);
-                            } else {
+                            if (!is_array($values)) {
                                 $values = [$values];
                             }
                         }
@@ -89,9 +85,7 @@ class QueryFilter
                         if (is_array($values) && isset($values[0][isset($parts[3]) ? $parts[3] : 'id'])) {
                             $values = collect($values)->pluck('id')->toArray();
                         } else {
-                            if (is_array($values)) {
-                                $values = array_values($values);
-                            } else {
+                            if (!is_array($values)) {
                                 $values = [$values];
                             }
                         }
@@ -119,13 +113,14 @@ class QueryFilter
                         break;
                     case 'in':
                         if (is_array($filters[$field]) && count($filters[$field]) > 0) {
-                            $ins = array_keys($filters[$field]);
-                            $query->whereIn($parts[1], $ins);
+                            $query->whereIn($parts[1], $filters[$field]);
                         }
                         break;
                     case 'has-count':
                         if (is_numeric($filters[$field])) {
-                            $query->withCount($parts[1])->having($parts[1] . '_count', $parts[2], $filters[$field]);
+                            $query
+                                ->withCount($parts[1])
+                                ->having($parts[1] . '_count', $parts[2], $filters[$field]);
                         }
                         break;
                     case '>':
