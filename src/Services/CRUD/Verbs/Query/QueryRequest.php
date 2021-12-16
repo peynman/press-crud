@@ -161,7 +161,7 @@ class QueryRequest extends FormRequest
      */
     public function shouldSort()
     {
-        return !is_null($this->get('sort'));
+        return !is_null($this->get('sort')) && count($this->get('sort')) > 0;
     }
 
     /**
