@@ -128,11 +128,39 @@ class Query implements ICRUDVerb
 
         // for records more than 100, find current page id and filter with that
         if ($total > 100) {
-            $offset = $cq->skip($paginate_from * $limit)->first();
-            if (!is_null($offset)) {
-                $query->where('id', '>=', $offset->id);
+            if ($request->shouldSort()) {
+                $orders = $request->getOrders();
+                $validSortNames = $request->getValidSortColumnNames();
+
+                $desc = true;
+                foreach ($orders as $sort) {
+                    if (isset($sort['column']) && isset($sort['direction'])) {
+                        if (in_array($sort['column'], $validSortNames)) {
+                            $desc = $sort['direction'] === 'asc' ? false : true;
+                        }
+                    }
+                }
+
+                if ($desc) {
+                    $offset = $cq->skip($paginate_from * $limit)->first();
+                    if (!is_null($offset)) {
+                        $query->where('id', '<=', $offset->id);
+                    }
+                    $query->take($limit);
+                } else {
+                    $offset = $cq->skip($paginate_from * $limit)->first();
+                    if (!is_null($offset)) {
+                        $query->where('id', '>=', $offset->id);
+                    }
+                    $query->take($limit);
+                }
+            } else {
+                $offset = $cq->skip($paginate_from * $limit)->first();
+                if (!is_null($offset)) {
+                    $query->where('id', '>=', $offset->id);
+                }
+                $query->take($limit);
             }
-            $query->take($limit);
         } else {
             // for records less than 100, just use skip function
             $query->skip($paginate_from * $limit)->take($limit);

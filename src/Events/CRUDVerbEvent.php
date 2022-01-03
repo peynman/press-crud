@@ -57,9 +57,9 @@ class CRUDVerbEvent implements ShouldBroadcast
         if (is_null($user)) {
             $this->userId = null;
         } else {
-            $this->userId = is_numeric($user) ? $user : $user->id;
+            $this->userId = is_object($user) ? $user->id : $user;
         }
-        $this->modelId = $model->id;
+        $this->modelId = is_object($model) ? $model->id : $model;
         $this->timestamp = $timestamp;
         $this->providerClass = $providerClass;
         $this->verb = $verb;
