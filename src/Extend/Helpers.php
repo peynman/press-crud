@@ -157,7 +157,7 @@ class Helpers
         $timezones = [];
 
         foreach ($zoneNames as $zone_name) {
-            $offset = (new \DateTime(null, new DateTimeZone($zone_name)))->getOffset();
+            $offset = (new \DateTime('now', new DateTimeZone($zone_name)))->getOffset();
             if (!isset($timezones[$offset])) {
                 $zoneOffset = CarbonInterval::create(0, 0, 0, 0, 0, 0, abs($offset))->cascade();
                 $offsetHours = sprintf('%02d', intval($zoneOffset->hours));

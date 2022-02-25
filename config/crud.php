@@ -43,6 +43,15 @@ return [
     ],
 
     /**
+     * Middlewares for protected web routes
+     */
+    'web-middlewares' => [
+        'web',
+        'auth:web',
+        \Larapress\CRUD\Middleware\CRUDAuthorizeRequest::class,
+    ],
+
+    /**
      * Middlewares for public CRUD routes
      */
     'public-middlewares' => [
