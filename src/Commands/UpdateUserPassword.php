@@ -54,7 +54,7 @@ class UpdateUserPassword extends Command
         /** @var Builder $user_quer */
         $user_quer = call_user_func([config('larapress.crud.user.model'), 'query']);
         /** @var \Larapress\CRUD\ICRUDUser $user */
-        $user = $user_quer->find($form['id'])->first();
+        $user = $user_quer->find($form['id']);
         if (!is_null($user)) {
             $user->update([
                 'password' => Hash::make($form['password']),
