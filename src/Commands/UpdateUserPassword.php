@@ -64,4 +64,14 @@ class UpdateUserPassword extends Command
 
         return 0;
     }
+
+
+    protected function fillForm($form) {
+        $vals = [];
+        foreach ($form as $key => $value) {
+            $vals[$key] = $this->ask('Please enter '.$key.':');
+        }
+
+        return $vals;
+    }
 }
