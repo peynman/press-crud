@@ -74,13 +74,13 @@ class PermissionsService implements IPermissionsService
         return 4294967295;
     }
 
-
     /**
-     * Undocumented function
+     * It creates a user with the given username and password, and gives it all the permissions
      *
-     * @param string $username
-     * @param string $password
-     * @return mixed
+     * @param string $username The username of the super user
+     * @param string $password The password for the super user.
+     *
+     * @return \Larapress\CRUD\ICRUDUser
      */
     public function createSuperUser($username, $password)
     {

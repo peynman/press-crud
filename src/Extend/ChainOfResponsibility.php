@@ -2,10 +2,12 @@
 
 namespace Larapress\CRUD\Extend;
 
-class ChainOfResponsibility {
+class ChainOfResponsibility
+{
     private $head;
 
-    public function __construct(private array $queue) {
+    public function __construct(private array $queue)
+    {
         $this->head = 0;
     }
 
@@ -16,14 +18,41 @@ class ChainOfResponsibility {
      * @param mixed ...$args
      * @return mixed
      */
-    public function handle($method, ...$args) {
+    public function handle(string $method, ...$args)
+    {
         $task = $this->dequeue();
-        return $task->${$method}(...$args, function (...$args) use($method) {
+        if (is_string($task)) {
+            return null;
+        }
+
+        return $task->{$method}(function (...$args) use ($method) {
             $this->handle($method, ...$args);
-        });
+        }, ...$args);
+}
+
+    /**
+     * Undocumented function
+     *
+     * @param string $method
+     * @param callable $aggregator
+     * @param mixed ...$args
+     *
+     * @return mixed
+     */
+    public function aggregate(string $method, callable $aggregator, ...$args)
+    {
+        $task = $this->dequeue();
+        if (is_null($task)) {
+            return $aggregator(...$args);
+        }
+
+        return $task->{$method}(function (...$args) use ($method, $aggregator) {
+            return $this->aggregate($method, $aggregator, ...$args);
+        }, ...$args);
     }
 
-    private function dequeue() {
+    private function dequeue()
+    {
         if ($this->head < count($this->queue)) {
             $this->head++;
             return $this->queue[$this->head - 1];

@@ -4,6 +4,7 @@ namespace Larapress\CRUD\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Larapress\CRUD\Commands\CreateCRUDJSON;
+use Larapress\CRUD\Commands\CreateLarapressModule;
 use Larapress\CRUD\Commands\CreateSuperUser;
 use Larapress\CRUD\Services\RBAC\IPermissionsService;
 use Larapress\CRUD\Services\CRUD\CRUDService;
@@ -23,6 +24,7 @@ use Larapress\CRUD\Validations\JSONObjectValidator;
 use Larapress\CRUD\Validations\NumericFarsiValidator;
 use Larapress\CRUD\Commands\ExportRoles;
 use Larapress\CRUD\Commands\ImportRoles;
+use Larapress\CRUD\Commands\UpdateUserPassword;
 
 class PackageServiceProvider extends ServiceProvider
 {
@@ -67,6 +69,8 @@ class PackageServiceProvider extends ServiceProvider
                 CreateCRUDJSON::class,
                 ExportRoles::class,
                 ImportRoles::class,
+                CreateLarapressModule::class,
+                UpdateUserPassword::class,
             ]);
         }
 

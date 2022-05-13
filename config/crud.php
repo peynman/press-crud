@@ -107,8 +107,8 @@ return [
     // default repository retrieve limits
     'repository' => [
         'limit' => 50,
-        'max_limit' => 200,
-        'min_limit' => 5,
+        'max_limit' => 2000,
+        'min_limit' => 1,
     ],
 
     /** safe sources for client to ask with "ServerSources" page property */

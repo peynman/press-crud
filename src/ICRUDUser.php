@@ -1,22 +1,22 @@
 <?php
 
 namespace Larapress\CRUD;
+use \Larapress\CRUD\Models\Role;
 
 /**
- * Interface IUser.
+ * An Interface for Role-Based users
  *
- * @method toArray
- *
- * @property int $id
- * @property string $name
- * @property string $password
+ * @property int        $id
+ * @property string     $name
+ * @property string     $password
  */
 interface ICRUDUser
 {
     /**
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function roles();
+    public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
     /**
      * @param string|string[]|int|int[] $roles
@@ -25,26 +25,25 @@ interface ICRUDUser
      */
     public function hasRole($roles);
 
-
     /**
-     * @return \Larapress\CRUD\Models\Role
+     * @return Role|null
      */
-    public function getUserHighestRole();
+    public function getUserHighestRole(): Role|null;
 
     /**
      * @param string|string[]|int|int[] $permissions
      *
      * @return bool
      */
-    public function hasPermission($permissions);
-
-    /**
-     * @return void
-     */
-    public function forgetPermissionsCache();
+    public function hasPermission($permissions): bool;
 
     /**
      * @return string[]
      */
     public function getPermissions();
+
+    /**
+     * @return void
+     */
+    public function forgetPermissionsCache();
 }

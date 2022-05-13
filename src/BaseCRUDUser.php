@@ -18,7 +18,7 @@ trait BaseCRUDUser
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function roles()
+    public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(
             Role::class,
@@ -35,7 +35,7 @@ trait BaseCRUDUser
      *
      * @return bool
      */
-    public function hasPermission($permissions)
+    public function hasPermission($permissions): bool
     {
         if (is_array($permissions)) {
             foreach ($permissions as $perm) {
@@ -102,7 +102,7 @@ trait BaseCRUDUser
     /**
      * @return \Larapress\CRUD\Models\Role
      */
-    public function getUserHighestRole()
+    public function getUserHighestRole(): Role|null
     {
         return Helpers::getCachedValue(
             'larapress.users.'.$this->id.'.roles.highest',

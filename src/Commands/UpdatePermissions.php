@@ -9,6 +9,7 @@ use Larapress\CRUD\Models\Permission;
 use Larapress\CRUD\Services\RBAC\IPermissionsService;
 use Illuminate\Support\Str;
 
+/* It iterates over all registered providers and creates a permission for each verb */
 class UpdatePermissions extends Command
 {
     /**

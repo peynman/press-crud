@@ -79,7 +79,8 @@ abstract class CastableClassArray extends stdClass
     public function toArray()
     {
         $array = [];
-        foreach (get_object_vars($this) as $attrName => $attrValue) {
+        $self = get_object_vars($this);
+        foreach ($self as $attrName => $attrValue) {
             if ($attrName === 'TYPE_CASTS') {
                 continue;
             }
